@@ -61,3 +61,274 @@ dialog::backdrop {
   overflow: hidden;
   overscroll-behavior: contain;
 }
+
+/* Auth, Onboarding & Couple Account Styles */
+.visually-hidden {
+  position: absolute;
+  clip-path: inset(50%);
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  white-space: nowrap;
+}
+
+.form-control:focus-visible,
+button:focus-visible,
+a:focus-visible,
+select:focus-visible {
+  outline: 2px solid #b96550;
+  outline-offset: 2px;
+}
+
+.auth-shell {
+  min-height: 100dvh;
+  background: radial-gradient(circle at top right, rgba(185, 101, 80, 0.08), transparent 42%), #f7f3ee;
+  color: #332621;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: max(1.5rem, env(safe-area-inset-top)) 1rem max(2rem, env(safe-area-inset-bottom));
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 30rem;
+  margin-inline: auto;
+}
+
+.auth-container-wide {
+  max-width: 38rem;
+}
+
+.auth-card {
+  background: #fffdf9;
+  border: 1px solid #e6dcd3;
+  border-radius: 2rem;
+  padding: 1.75rem 1.35rem;
+  box-shadow: 0 18px 45px rgba(67, 45, 37, 0.07);
+}
+
+@media (min-width: 40rem) {
+  .auth-card {
+    padding: 2.5rem;
+  }
+}
+
+.password-field-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-field-wrap .form-control {
+  padding-inline-end: 3.25rem;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  inset-inline-end: 0.45rem;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  color: #7d6e66;
+  background: transparent;
+  transition: background-color 0.16s, color 0.16s;
+}
+
+.password-toggle-btn:hover {
+  background: #eee7df;
+  color: #332621;
+}
+
+.secondary-button {
+  color: #5e4e47;
+  background: #fffdf9;
+  border: 1px solid #d8ccc2;
+  border-radius: 999px;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 3.25rem;
+  padding: 0.85rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  transition: background-color 0.16s, border-color 0.16s;
+  display: inline-flex;
+}
+
+.secondary-button:hover {
+  background: #f3eee8;
+  border-color: #c7b8ac;
+}
+
+.onboarding-progress {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-block-end: 1.75rem;
+}
+
+.step-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: #eee7df;
+  color: #8a776e;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.step-pill.is-active {
+  background: #332621;
+  color: #fff;
+}
+
+.step-pill.is-done {
+  background: #f2ddd6;
+  color: #8e4637;
+}
+
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+@media (min-width: 40rem) {
+  .choice-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.choice-card-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 1rem;
+  border: 1px solid #e3d9cf;
+  background: #f8f4ef;
+  color: #5e4e47;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.16s;
+  text-align: center;
+}
+
+input[type="radio"]:checked + .choice-card-label {
+  background: #332621;
+  border-color: #332621;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(51, 38, 33, 0.14);
+}
+
+input[type="radio"]:focus-visible + .choice-card-label {
+  outline: 2px solid #b96550;
+  outline-offset: 2px;
+}
+
+.couple-link-box {
+  background: #f5efe8;
+  border: 1px solid #e5dbd1;
+  border-radius: 1.25rem;
+  padding: 1rem 1.15rem;
+}
+
+.couple-summary-strip {
+  margin-top: 1.75rem;
+  background: #fffdf9;
+  border: 1px solid #e6dcd3;
+  border-radius: 1.5rem;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  box-shadow: 0 8px 25px rgba(67, 45, 37, 0.04);
+}
+
+.user-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.35rem 0.85rem 0.35rem 0.4rem;
+  border-radius: 999px;
+  background: #fffdf9;
+  border: 1px solid #dfd3c8;
+  color: #332621;
+  font-size: 0.8rem;
+  font-weight: 700;
+  transition: background-color 0.16s, border-color 0.16s;
+}
+
+.user-pill-btn:hover {
+  background: #f3eee8;
+}
+
+.user-avatar-dot {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: #f2ddd6;
+  color: #8e4637;
+  font-weight: 800;
+  font-size: 0.8rem;
+}
+
+.account-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+  padding: 0.3rem;
+  border-radius: 999px;
+  background: #eee7df;
+  margin-bottom: 1.5rem;
+}
+
+.account-tab-btn {
+  border-radius: 999px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #776861;
+  background: transparent;
+  transition: all 0.16s;
+}
+
+.account-tab-btn.is-active {
+  background: #fff;
+  color: #332621;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.danger-outline-btn {
+  width: 100%;
+  min-height: 3rem;
+  border-radius: 999px;
+  border: 1px solid #e2c5bd;
+  background: #fdf6f4;
+  color: #9d4939;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: background-color 0.16s;
+}
+
+.danger-outline-btn:hover {
+  background: #f7e4df;
+}

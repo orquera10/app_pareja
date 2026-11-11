@@ -120,4 +120,9 @@ MEDIA_ROOT = BASE_DIR / "media"
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
 
+LOGIN_URL = "/login/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/login/"
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 60  # 60 días conectado en el celular
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

@@ -1,0 +1,138 @@
+{% load static %}<!DOCTYPE html>
+<html lang="es-AR" class="HoXi4W_variable rG64oW_variable">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f7f3ee" />
+  <title>Ingresar — Nosotros</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png" />
+  <link rel="stylesheet" href="{% static 'css/nosotros.css' %}" />
+</head>
+<body class="antialiased">
+  <main class="auth-shell">
+    <div class="auth-container">
+      <!-- Brand Header -->
+      <div class="mb-7 text-center">
+        <div class="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full bg-[#b96550] text-white shadow-sm">
+          <svg aria-hidden="true" class="h-5 w-5 fill-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"></path>
+          </svg>
+        </div>
+        <p class="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-[#b05f4b]">Nuestra agenda privada</p>
+        <h1 class="font-serif text-4xl leading-none tracking-[-0.04em] text-[#30231f] sm:text-5xl">
+          Nosotros, <span class="italic text-[#b96550]">juntos.</span>
+        </h1>
+        <p class="mt-3 text-sm leading-6 text-[#766760]">
+          Iniciá sesión para ver sus próximos planes, recuerdos compartidos y sorpresas.
+        </p>
+      </div>
+
+      <!-- Auth Card -->
+      <section class="auth-card">
+        {% if error_message %}
+        <div class="mb-5 rounded-2xl bg-[#f1d8d1] px-4 py-3 text-sm font-semibold text-[#8d3f30]" role="alert" aria-live="polite">
+          {{ error_message }}
+        </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'login' %}" class="space-y-5" aria-labelledby="login-heading">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ next_url }}" />
+          <h2 id="login-heading" class="visually-hidden">Iniciar sesión en Nosotros</h2>
+
+          <div>
+            <label for="login-username" class="mb-2 block text-sm font-semibold text-[#4b3b35]">
+              Tu usuario <span aria-hidden="true" class="text-[#b96550]">*</span>
+            </label>
+            <input
+              id="login-username"
+              name="username"
+              type="text"
+              value="{{ entered_username }}"
+              autocomplete="username"
+              autocorrect="off"
+              autocapitalize="none"
+              spellcheck="false"
+              enterkeyhint="next"
+              placeholder="ej. dario o camila"
+              required
+              class="form-control"
+            />
+          </div>
+
+          <div>
+            <label for="login-password" class="mb-2 block text-sm font-semibold text-[#4b3b35]">
+              Contraseña <span aria-hidden="true" class="text-[#b96550]">*</span>
+            </label>
+            <div class="password-field-wrap">
+              <input
+                id="login-password"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                enterkeyhint="done"
+                placeholder="Ingresá tu contraseña"
+                required
+                class="form-control"
+              />
+              <button
+                type="button"
+                id="toggle-login-password"
+                class="password-toggle-btn"
+                aria-pressed="false"
+                aria-label="Mostrar contraseña"
+                title="Mostrar u ocultar contraseña"
+              >
+                <svg data-eye-open aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg data-eye-closed aria-hidden="true" class="hidden h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+                  <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c6.5 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+                  <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3.5 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+                  <line x1="2" y1="2" x2="22" y2="22"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="primary-button">
+            <span>Entrar a nuestra agenda</span>
+            <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M14 7l5 5-5 5"></path>
+            </svg>
+          </button>
+        </form>
+
+        <div class="mt-6 rounded-2xl bg-[#f5efe8] p-4 text-center text-xs leading-5 text-[#7a6a62]">
+          Si es tu primera vez entrando, te espera una bienvenida rápida para conectar tu perfil con el de tu pareja y elegir tu clave personal.
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    (() => {
+      const toggleBtn = document.getElementById("toggle-login-password");
+      const pwdInput = document.getElementById("login-password");
+      if (toggleBtn && pwdInput) {
+        const eyeOpen = toggleBtn.querySelector("[data-eye-open]");
+        const eyeClosed = toggleBtn.querySelector("[data-eye-closed]");
+        toggleBtn.addEventListener("click", () => {
+          const showing = pwdInput.type === "text";
+          pwdInput.type = showing ? "password" : "text";
+          toggleBtn.setAttribute("aria-pressed", String(!showing));
+          toggleBtn.setAttribute("aria-label", showing ? "Mostrar contraseña" : "Ocultar contraseña");
+          eyeOpen.classList.toggle("hidden", !showing);
+          eyeClosed.classList.toggle("hidden", showing);
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

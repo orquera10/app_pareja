@@ -3,7 +3,12 @@ from . import views
 
 urlpatterns = [
     path("", views.index, name="index"),
+    path("login/", views.login_view, name="login"),
+    path("logout/", views.logout_view, name="logout"),
+    path("onboarding/", views.onboarding_view, name="onboarding"),
     path("api/state/", views.api_state, name="api_state"),
+    path("api/account/password/", views.api_change_password, name="api_change_password"),
+    path("api/account/profile/", views.api_update_profile, name="api_update_profile"),
     path("api/plans/create/", views.api_create_plan, name="api_create_plan"),
     path("api/plans/reschedule/", views.api_reschedule_plan, name="api_reschedule_plan"),
     path("api/plans/complete/", views.api_complete_plan, name="api_complete_plan"),

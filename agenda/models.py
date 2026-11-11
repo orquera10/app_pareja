@@ -1,4 +1,6 @@
 import uuid
+from datetime import date
+from django.conf import settings
 from django.db import models
 
 
@@ -29,6 +31,13 @@ class Plan(models.Model):
     status = models.CharField(
         "Estado", max_length=20, choices=STATUS_CHOICES, default="planned"
     )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_plans",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -42,6 +51,12 @@ class Plan(models.Model):
         return f"{self.title} ({self.get_status_display()})"
 
     def to_dict(self) -> dict:
+        author_name = ""
+        if self.created_by:
+            prof = getattr(self.created_by, "couple_profile", None)
+            author_name = (
+                prof.display_name if prof and prof.display_name else self.created_by.username.capitalize()
+            )
         return {
             "id": str(self.id),
             "title": self.title,
@@ -50,6 +65,7 @@ class Plan(models.Model):
             "location": self.location or "",
             "category": self.category,
             "status": self.status,
+            "authorName": author_name,
         }
 
 
@@ -70,6 +86,13 @@ class Memory(models.Model):
         "URL de foto estática/inicial", max_length=300, blank=True, default=""
     )
     photo_alt = models.CharField("Texto alternativo", max_length=160, blank=True, default="")
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_memories",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -93,11 +116,18 @@ class Memory(models.Model):
 
     def to_dict(self) -> dict:
         photo_url = self.get_photo_url()
+        author_name = ""
+        if self.created_by:
+            prof = getattr(self.created_by, "couple_profile", None)
+            author_name = (
+                prof.display_name if prof and prof.display_name else self.created_by.username.capitalize()
+            )
         return {
             "id": str(self.id),
             "planTitle": self.plan_title,
             "note": self.note,
             "happenedAt": f"{self.happened_at.isoformat()}T12:00:00.000Z",
+            "authorName": author_name,
             "photo": (
                 {
                     "url": photo_url,
@@ -106,4 +136,96 @@ class Memory(models.Model):
                 if photo_url
                 else None
             ),
+        }
+
+
+class CoupleProfile(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="couple_profile",
+    )
+    partner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="partner_profiles",
+    )
+    display_name = models.CharField("Tu nombre", max_length=60, blank=True, default="")
+    nickname_for_partner = models.CharField(
+        "Cómo llamás a tu pareja", max_length=60, blank=True, default=""
+    )
+    anniversary_date = models.DateField(
+        "Fecha de aniversario", null=True, blank=True
+    )
+    favorite_plan_style = models.CharField(
+        "Plan favorito",
+        max_length=20,
+        choices=Plan.CATEGORY_CHOICES,
+        default="date",
+    )
+    favorite_food_or_place = models.CharField(
+        "Comida o lugar favorito", max_length=140, blank=True, default=""
+    )
+    relationship_goal = models.CharField(
+        "Qué quieren priorizar juntos", max_length=160, blank=True, default=""
+    )
+    love_note = models.TextField(
+        "Nota para tu pareja", max_length=300, blank=True, default=""
+    )
+    onboarding_completed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "nosotros_couple_profile"
+        verbose_name = "Perfil de Pareja"
+        verbose_name_plural = "Perfiles de Pareja"
+
+    def __str__(self) -> str:
+        return f"Perfil de {self.display_name or self.user.username}"
+
+    def effective_anniversary(self) -> date | None:
+        if self.anniversary_date:
+            return self.anniversary_date
+        if self.partner:
+            p_prof = getattr(self.partner, "couple_profile", None)
+            if p_prof and p_prof.anniversary_date:
+                return p_prof.anniversary_date
+        return None
+
+    def to_dict(self) -> dict:
+        anniv = self.effective_anniversary()
+        days_together = (date.today() - anniv).days if anniv else None
+        partner_info = None
+        if self.partner:
+            p_prof = getattr(self.partner, "couple_profile", None)
+            partner_info = {
+                "username": self.partner.username,
+                "displayName": (
+                    p_prof.display_name
+                    if p_prof and p_prof.display_name
+                    else self.partner.username.capitalize()
+                ),
+                "onboardingCompleted": bool(p_prof and p_prof.onboarding_completed),
+                "favoritePlanStyle": p_prof.favorite_plan_style if p_prof else "date",
+                "favoriteFoodOrPlace": p_prof.favorite_food_or_place if p_prof else "",
+                "relationshipGoal": p_prof.relationship_goal if p_prof else "",
+                "loveNote": p_prof.love_note if p_prof else "",
+                "nicknameForPartner": p_prof.nickname_for_partner if p_prof else "",
+            }
+        return {
+            "username": self.user.username,
+            "displayName": self.display_name or self.user.username.capitalize(),
+            "nicknameForPartner": self.nickname_for_partner or "",
+            "anniversaryDate": anniv.isoformat() if anniv else "",
+            "daysTogether": days_together if days_together is not None and days_together >= 0 else None,
+            "favoritePlanStyle": self.favorite_plan_style,
+            "favoriteFoodOrPlace": self.favorite_food_or_place or "",
+            "relationshipGoal": self.relationship_goal or "",
+            "loveNote": self.love_note or "",
+            "onboardingCompleted": self.onboarding_completed,
+            "partner": partner_info,
         }

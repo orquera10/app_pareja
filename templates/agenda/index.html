@@ -44,6 +44,10 @@
             </svg>
             <span>App Android</span>
           </a>
+          <button id="user-account-btn" class="user-pill-btn" type="button" aria-label="Mi cuenta y pareja">
+            <span id="header-user-initial" class="user-avatar-dot">N</span>
+            <span id="header-user-name" class="hidden sm:inline">Cuenta</span>
+          </button>
           <button id="top-new-plan-btn" class="flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-full bg-[#332621] px-3 text-sm font-bold text-white transition active:scale-95 sm:px-4 sm:hover:-translate-y-0.5 sm:hover:bg-[#493630]" type="button" aria-label="Crear un nuevo plan">
             <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 5v14M5 12h14"></path>
@@ -78,6 +82,9 @@
             Un espacio simple para organizar lo que viene y guardar todo eso que no queremos olvidar.
           </p>
         </section>
+
+        <!-- Couple Connection Summary Strip -->
+        <div id="couple-summary-strip" class="couple-summary-strip hidden"></div>
 
         <!-- 7-Day Strip Card -->
         <section class="mt-9 overflow-hidden rounded-[1.75rem] border border-[#e6dcd3] bg-[#fffdf9] p-3.5 shadow-[0_10px_35px_rgba(67,45,37,0.06)] sm:mt-12 sm:rounded-[2rem] sm:p-6">
@@ -363,6 +370,151 @@
         </form>
       </div>
     </dialog>
+
+    <!-- MODAL 4: MI CUENTA, PAREJA Y CONTRASEÑA (Native <dialog closedby="any">) -->
+    <dialog id="dialog-account" class="nosotros-dialog" closedby="any" aria-labelledby="dialog-account-title">
+      <div class="bottom-sheet max-h-[94dvh] w-full overflow-y-auto rounded-t-[1.75rem] bg-[#fffdf9] px-5 pb-6 pt-3 shadow-2xl sm:max-w-xl sm:rounded-[2rem] sm:p-8">
+        <div class="mx-auto mb-4 h-1 w-10 rounded-full bg-[#d7cbc2] sm:hidden"></div>
+        <div class="mb-5 flex items-start justify-between gap-6">
+          <div>
+            <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-[#b05f4b]">Espacio privado</p>
+            <h2 id="dialog-account-title" class="font-serif text-3xl text-[#30231f]">Nosotros &amp; Cuenta</h2>
+          </div>
+          <button data-close-dialog="dialog-account" class="grid h-10 w-10 place-items-center rounded-full bg-[#f3eee8] text-[#6f625c] transition hover:bg-[#e9dfd7]" type="button" aria-label="Cerrar">
+            <svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m6 6 12 12M18 6 6 18"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="account-tabs" role="tablist" aria-label="Opciones de cuenta">
+          <button type="button" role="tab" aria-selected="true" id="acct-tab-partner" class="account-tab-btn is-active">Pareja</button>
+          <button type="button" role="tab" aria-selected="false" id="acct-tab-profile" class="account-tab-btn">Mis gustos</button>
+          <button type="button" role="tab" aria-selected="false" id="acct-tab-password" class="account-tab-btn">Contraseña</button>
+        </div>
+
+        <!-- Account Modal Feedback -->
+        <div id="account-modal-feedback" class="hidden mb-5 rounded-2xl px-4 py-3 text-sm font-semibold" role="status" aria-live="polite"></div>
+
+        <!-- TAB 1: PAREJA -->
+        <div id="acct-panel-partner" class="space-y-4">
+          <div id="partner-overview-card" class="couple-link-box space-y-3"></div>
+          <form method="post" action="/logout/" class="pt-2">
+            {% csrf_token %}
+            <button type="submit" class="danger-outline-btn">Cerrar sesión</button>
+          </form>
+        </div>
+
+        <!-- TAB 2: MIS GUSTOS / ONBOARDING PROFILE -->
+        <form id="acct-panel-profile" class="space-y-4" hidden>
+          <div>
+            <label for="acct-display-name" class="mb-2 block text-sm font-semibold text-[#4b3b35]">Tu nombre</label>
+            <input id="acct-display-name" name="display_name" type="text" required maxlength="60" class="form-control" />
+            <span data-field-error="display_name" class="hidden mt-1.5 block text-xs font-medium text-[#a74734]"></span>
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="acct-nickname" class="mb-2 block text-sm font-semibold text-[#4b3b35]">Apodo a tu pareja</label>
+              <input id="acct-nickname" name="nickname_for_partner" type="text" maxlength="60" placeholder="Ej. Amor" class="form-control" />
+            </div>
+            <div>
+              <label for="acct-anniversary" class="mb-2 block text-sm font-semibold text-[#4b3b35]">Aniversario</label>
+              <input id="acct-anniversary" name="anniversary_date" type="date" class="form-control" />
+            </div>
+          </div>
+          <div>
+            <label for="acct-plan-style" class="mb-2 block text-sm font-semibold text-[#4b3b35]">Plan favorito</label>
+            <select id="acct-plan-style" name="favorite_plan_style" class="form-control">
+              <option value="date">Cita</option>
+              <option value="food">Comida</option>
+              <option value="trip">Viaje</option>
+              <option value="culture">Cultura</option>
+              <option value="home">En casa</option>
+              <option value="other">Otro</option>
+            </select>
+          </div>
+          <div>
+            <label for="acct-fav-food" class="mb-2 block text-sm font-semibold text-[#4b3b35]">Comida o lugar favorito</label>
+            <input id="acct-fav-food" name="favorite_food_or_place" type="text" maxlength="140" class="form-control" />
+          </div>
+          <div>
+            <label for="acct-goal" class="mb-2 block text-sm font-semibold text-[#4b3b35]">Meta compartida</label>
+            <input id="acct-goal" name="relationship_goal" type="text" maxlength="160" class="form-control" />
+          </div>
+          <div>
+            <label for="acct-love-note" class="mb-2 block text-sm font-semibold text-[#4b3b35]">Nota para tu pareja</label>
+            <textarea id="acct-love-note" name="love_note" maxlength="300" class="form-control min-h-24"></textarea>
+          </div>
+          <button id="submit-update-profile" type="submit" class="primary-button">
+            <span data-btn-label>Guardar mis gustos</span>
+          </button>
+        </form>
+
+        <!-- TAB 3: CAMBIAR CONTRASEÑA -->
+        <form id="acct-panel-password" class="space-y-4" hidden>
+          <div>
+            <label for="acct-current-password" class="mb-2 block text-sm font-semibold text-[#4b3b35]">Contraseña actual</label>
+            <div class="password-field-wrap">
+              <input
+                id="acct-current-password"
+                name="current_password"
+                type="password"
+                autocomplete="current-password"
+                required
+                class="form-control"
+                placeholder="Tu contraseña actual"
+              />
+              <button type="button" class="password-toggle-btn" data-toggle-target="acct-current-password" aria-pressed="false" aria-label="Mostrar contraseña actual">
+                <svg data-eye-open aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg data-eye-closed aria-hidden="true" class="hidden h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+                  <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c6.5 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+                  <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3.5 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+                  <line x1="2" y1="2" x2="22" y2="22"></line>
+                </svg>
+              </button>
+            </div>
+            <span data-field-error="current_password" class="hidden mt-1.5 block text-xs font-medium text-[#a74734]"></span>
+          </div>
+
+          <div>
+            <label for="acct-new-password" class="mb-2 block text-sm font-semibold text-[#4b3b35]">Nueva contraseña</label>
+            <div class="password-field-wrap">
+              <input
+                id="acct-new-password"
+                name="new_password"
+                type="password"
+                autocomplete="new-password"
+                minlength="4"
+                required
+                class="form-control"
+                placeholder="Mínimo 4 caracteres"
+              />
+              <button type="button" class="password-toggle-btn" data-toggle-target="acct-new-password" aria-pressed="false" aria-label="Mostrar nueva contraseña">
+                <svg data-eye-open aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg data-eye-closed aria-hidden="true" class="hidden h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+                  <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c6.5 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+                  <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3.5 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+                  <line x1="2" y1="2" x2="22" y2="22"></line>
+                </svg>
+              </button>
+            </div>
+            <span data-field-error="new_password" class="hidden mt-1.5 block text-xs font-medium text-[#a74734]"></span>
+          </div>
+
+          <button id="submit-change-password" type="submit" class="primary-button">
+            <span data-btn-label>Actualizar contraseña</span>
+          </button>
+        </form>
+      </div>
+    </dialog>
   </main>
 
   <script id="initial-state-data" type="application/json">{{ initial_state_json|safe }}</script>
@@ -456,7 +608,92 @@
         return `${dateObj.getUTCFullYear()}-${String(dateObj.getUTCMonth() + 1).padStart(2, "0")}-${String(dateObj.getUTCDate()).padStart(2, "0")}`;
       }
 
+      function renderProfile() {
+        const prof = state.profile;
+        if (!prof) return;
+        const nameEl = document.getElementById("header-user-name");
+        const initEl = document.getElementById("header-user-initial");
+        const label = prof.displayName || prof.username || "Cuenta";
+        if (nameEl) nameEl.textContent = label;
+        if (initEl) initEl.textContent = label.slice(0, 1).toUpperCase();
+
+        // Couple Summary Strip on Agenda
+        const strip = document.getElementById("couple-summary-strip");
+        if (strip) {
+          const partner = prof.partner;
+          if (partner) {
+            const partnerName = partner.displayName || partner.username;
+            const daysBadge =
+              prof.daysTogether !== null && prof.daysTogether !== undefined
+                ? `<span class="rounded-full bg-[#f2ddd6] px-3 py-1 text-xs font-bold text-[#8e4637]">${prof.daysTogether} días juntos</span>`
+                : `<span class="rounded-full bg-[#f2ddd6] px-3 py-1 text-xs font-bold text-[#8e4637]">Vinculados</span>`;
+            const noteText =
+              partner.loveNote
+                ? `“${escapeHtml(partner.loveNote)}” — <strong class="font-semibold text-[#332621]">${escapeHtml(partnerName)}</strong>`
+                : partner.onboardingCompleted
+                  ? `${escapeHtml(prof.displayName)} & ${escapeHtml(partnerName)} · Todo lo que planean se sincroniza entre los dos.`
+                  : `Conectado con ${escapeHtml(partnerName)} (@${escapeHtml(partner.username)}). Cuando ingrese por primera vez verán sus gustos acá.`;
+
+            strip.innerHTML = `
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#b96550]/15 text-xs font-extrabold text-[#8e4637]">
+                  ${escapeHtml(prof.displayName.slice(0, 1).toUpperCase())}&amp;${escapeHtml(partnerName.slice(0, 1).toUpperCase())}
+                </span>
+                <p class="text-sm leading-5 text-[#6f5c53] min-w-0">${noteText}</p>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                ${daysBadge}
+                <button type="button" id="strip-open-partner-btn" class="text-xs font-bold text-[#a65340] hover:underline">Ver pareja</button>
+              </div>
+            `;
+            strip.classList.remove("hidden");
+            const quickBtn = document.getElementById("strip-open-partner-btn");
+            if (quickBtn) quickBtn.addEventListener("click", () => openAccountDialog("partner"));
+          } else {
+            strip.classList.add("hidden");
+          }
+        }
+
+        // Populate Account modal Partner tab
+        const overview = document.getElementById("partner-overview-card");
+        if (overview) {
+          const partner = prof.partner;
+          if (!partner) {
+            overview.innerHTML = `<p class="text-sm text-[#766760]">Tu perfil está listo, pero todavía no tenés pareja vinculada.</p>`;
+          } else {
+            const pStyle = CATEGORY_META[partner.favoritePlanStyle]?.label || "Cita";
+            overview.innerHTML = `
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <span class="grid h-11 w-11 place-items-center rounded-full bg-[#b96550] text-white font-bold">
+                    ${escapeHtml(partner.displayName.slice(0, 1).toUpperCase())}
+                  </span>
+                  <div>
+                    <p class="font-serif text-2xl leading-none text-[#332621]">${escapeHtml(partner.displayName)}</p>
+                    <p class="mt-1 text-xs font-semibold text-[#8a776e]">@${escapeHtml(partner.username)}${prof.nicknameForPartner ? ` · Tu “${escapeHtml(prof.nicknameForPartner)}”` : ""}</p>
+                  </div>
+                </div>
+                <span class="rounded-full px-3 py-1 text-[11px] font-bold ${partner.onboardingCompleted ? "bg-[#dbe9df] text-[#315c40]" : "bg-[#f2ddd6] text-[#8e4637]"}">
+                  ${partner.onboardingCompleted ? "Conectados" : "Pendiente"}
+                </span>
+              </div>
+              ${
+                partner.onboardingCompleted
+                  ? `<div class="border-t border-[#e5dbd1] pt-3 space-y-2 text-sm text-[#5e4e47]">
+                      <p><strong>Plan favorito:</strong> ${escapeHtml(pStyle)}</p>
+                      ${partner.favoriteFoodOrPlace ? `<p><strong>Lo que nunca falla:</strong> ${escapeHtml(partner.favoriteFoodOrPlace)}</p>` : ""}
+                      ${partner.relationshipGoal ? `<p><strong>Meta compartida:</strong> ${escapeHtml(partner.relationshipGoal)}</p>` : ""}
+                      ${partner.loveNote ? `<p class="rounded-2xl bg-[#fffdf9] p-3 font-serif text-lg italic text-[#332621]">“${escapeHtml(partner.loveNote)}”</p>` : ""}
+                    </div>`
+                  : `<p class="border-t border-[#e5dbd1] pt-3 text-xs leading-5 text-[#7a6a62]">Todavía no completó su bienvenida inicial. Apenas entre por primera vez van a ver sus gustos y nota acá.</p>`
+              }
+            `;
+          }
+        }
+      }
+
       function render() {
+        renderProfile();
         const upcomingPlans = state.plans
           .filter((p) => p.status !== "completed")
           .sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -561,6 +798,11 @@
                             </svg>
                             ${escapeHtml(plan.location)}
                           </span>`
+                        : ""
+                    }
+                    ${
+                      plan.authorName
+                        ? `<span class="opacity-75">Por ${escapeHtml(plan.authorName)}</span>`
                         : ""
                     }
                   </div>
@@ -878,6 +1120,132 @@
         } finally {
           btn.disabled = false;
           label.textContent = "Guardar recuerdo";
+        }
+      });
+
+      function showAccountFeedback(msg, isSuccess = true) {
+        const el = document.getElementById("account-modal-feedback");
+        if (!el) return;
+        if (!msg) {
+          el.className = "hidden mb-5 rounded-2xl px-4 py-3 text-sm font-semibold";
+          el.textContent = "";
+          return;
+        }
+        el.textContent = msg;
+        el.className = `mb-5 rounded-2xl px-4 py-3 text-sm font-semibold ${
+          isSuccess ? "bg-[#dbe9df] text-[#315c40]" : "bg-[#f1d8d1] text-[#8d3f30]"
+        }`;
+      }
+
+      function setAccountTab(tabName) {
+        const tabs = ["partner", "profile", "password"];
+        tabs.forEach((t) => {
+          const btn = document.getElementById(`acct-tab-${t}`);
+          const panel = document.getElementById(`acct-panel-${t}`);
+          const isTarget = t === tabName;
+          if (btn) {
+            btn.classList.toggle("is-active", isTarget);
+            btn.setAttribute("aria-selected", String(isTarget));
+          }
+          if (panel) panel.hidden = !isTarget;
+        });
+      }
+
+      function openAccountDialog(initialTab = "partner") {
+        showFeedback(null);
+        showAccountFeedback(null);
+        setAccountTab(initialTab);
+        const prof = state.profile;
+        if (prof) {
+          document.getElementById("acct-display-name").value = prof.displayName || "";
+          document.getElementById("acct-nickname").value = prof.nicknameForPartner || "";
+          document.getElementById("acct-anniversary").value = prof.anniversaryDate || "";
+          document.getElementById("acct-plan-style").value = prof.favoritePlanStyle || "date";
+          document.getElementById("acct-fav-food").value = prof.favoriteFoodOrPlace || "";
+          document.getElementById("acct-goal").value = prof.relationshipGoal || "";
+          document.getElementById("acct-love-note").value = prof.loveNote || "";
+        }
+        clearFormErrors(document.getElementById("acct-panel-profile"), "account-modal-feedback");
+        clearFormErrors(document.getElementById("acct-panel-password"), "account-modal-feedback");
+        document.getElementById("acct-panel-password").reset();
+        document.getElementById("dialog-account").showModal();
+      }
+
+      // Password toggle buttons in account dialog
+      document.querySelectorAll("[data-toggle-target]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const input = document.getElementById(btn.getAttribute("data-toggle-target"));
+          if (!input) return;
+          const showing = input.type === "text";
+          input.type = showing ? "password" : "text";
+          btn.setAttribute("aria-pressed", String(!showing));
+          btn.querySelector("[data-eye-open]").classList.toggle("hidden", !showing);
+          btn.querySelector("[data-eye-closed]").classList.toggle("hidden", showing);
+        });
+      });
+
+      document.getElementById("user-account-btn").addEventListener("click", () => openAccountDialog("partner"));
+      document.getElementById("acct-tab-partner").addEventListener("click", () => { showAccountFeedback(null); setAccountTab("partner"); });
+      document.getElementById("acct-tab-profile").addEventListener("click", () => { showAccountFeedback(null); setAccountTab("profile"); });
+      document.getElementById("acct-tab-password").addEventListener("click", () => { showAccountFeedback(null); setAccountTab("password"); });
+
+      document.getElementById("acct-panel-profile").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const form = e.currentTarget;
+        const btn = document.getElementById("submit-update-profile");
+        const label = btn.querySelector("[data-btn-label]");
+        btn.disabled = true;
+        label.textContent = "Guardando...";
+        try {
+          const res = await fetch("/api/account/profile/", {
+            method: "POST",
+            headers: { "X-CSRFToken": getCsrfToken() },
+            body: new FormData(form)
+          });
+          if (res.status === 401) { window.location.href = "/login/"; return; }
+          const data = await res.json();
+          if (data.success) {
+            state.profile = data.profile;
+            renderProfile();
+            showAccountFeedback(data.message, true);
+          } else {
+            showFormErrors(form, "account-modal-feedback", data);
+          }
+        } catch (err) {
+          showAccountFeedback("No pudimos actualizar tu perfil.", false);
+        } finally {
+          btn.disabled = false;
+          label.textContent = "Guardar mis gustos";
+        }
+      });
+
+      document.getElementById("acct-panel-password").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const form = e.currentTarget;
+        const btn = document.getElementById("submit-change-password");
+        const label = btn.querySelector("[data-btn-label]");
+        btn.disabled = true;
+        label.textContent = "Actualizando...";
+        try {
+          const res = await fetch("/api/account/password/", {
+            method: "POST",
+            headers: { "X-CSRFToken": getCsrfToken() },
+            body: new FormData(form)
+          });
+          if (res.status === 401) { window.location.href = "/login/"; return; }
+          const data = await res.json();
+          if (data.success) {
+            form.reset();
+            clearFormErrors(form, "account-modal-feedback");
+            showAccountFeedback(data.message, true);
+          } else {
+            showFormErrors(form, "account-modal-feedback", data);
+          }
+        } catch (err) {
+          showAccountFeedback("No pudimos cambiar la contraseña.", false);
+        } finally {
+          btn.disabled = false;
+          label.textContent = "Actualizar contraseña";
         }
       });
 

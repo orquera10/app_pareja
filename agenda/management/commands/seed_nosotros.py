@@ -1,17 +1,62 @@
 import uuid
 from datetime import date
+from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.utils.dateparse import parse_datetime
-from agenda.models import Memory, Plan
+from agenda.models import CoupleProfile, Memory, Plan
 
 
 class Command(BaseCommand):
-    help = "Seeds the initial Nosotros couple plans and memories from the Figma Make prototype if the database is empty."
+    help = "Seeds initial Nosotros users (dario/camila), couple profiles, plans, and memories."
+
+    def _seed_couple_users(self):
+        User = get_user_model()
+        dario, dario_created = User.objects.get_or_create(
+            username="dario",
+            defaults={"first_name": "Darío", "is_active": True},
+        )
+        if dario_created:
+            dario.set_password("123456")
+            dario.save()
+
+        camila, camila_created = User.objects.get_or_create(
+            username="camila",
+            defaults={"first_name": "Camila", "is_active": True},
+        )
+        if camila_created:
+            camila.set_password("123456")
+            camila.save()
+
+        dario_profile, _ = CoupleProfile.objects.get_or_create(
+            user=dario,
+            defaults={
+                "partner": camila,
+                "display_name": "Darío",
+                "onboarding_completed": False,
+            },
+        )
+        if dario_profile.partner_id != camila.id:
+            dario_profile.partner = camila
+            dario_profile.save(update_fields=["partner"])
+
+        camila_profile, _ = CoupleProfile.objects.get_or_create(
+            user=camila,
+            defaults={
+                "partner": dario,
+                "display_name": "Camila",
+                "onboarding_completed": False,
+            },
+        )
+        if camila_profile.partner_id != dario.id:
+            camila_profile.partner = dario
+            camila_profile.save(update_fields=["partner"])
 
     def handle(self, *args, **options):
+        self._seed_couple_users()
+
         if Plan.objects.exists():
             self.stdout.write(
-                self.style.SUCCESS("Nosotros data already seeded — skipping.")
+                self.style.SUCCESS("Nosotros couple users verified and plans already seeded.")
             )
             return
 
@@ -111,5 +156,5 @@ class Command(BaseCommand):
             Memory.objects.create(**mem)
 
         self.stdout.write(
-            self.style.SUCCESS("Successfully seeded 6 plans and 3 memories for Nosotros.")
+            self.style.SUCCESS("Successfully seeded users, 6 plans, and 3 memories for Nosotros.")
         )

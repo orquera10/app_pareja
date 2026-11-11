@@ -1,22 +1,59 @@
 import json
 from datetime import datetime
+from functools import wraps
 from django.conf import settings
+from django.contrib.auth import authenticate, get_user_model, login, logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
 from django.http import FileResponse, HttpResponse, HttpResponseRedirect, JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_date, parse_datetime
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_GET, require_POST
 
-from .models import Memory, Plan
+from .models import CoupleProfile, Memory, Plan
 
 
-def _serialize_state():
-    plans = [p.to_dict() for p in Plan.objects.all().order_by("date")]
-    memories = [
-        m.to_dict() for m in Memory.objects.all().order_by("-happened_at", "-created_at")
+def _get_or_create_profile(user) -> CoupleProfile:
+    profile, created = CoupleProfile.objects.get_or_create(
+        user=user,
+        defaults={
+            "display_name": user.first_name or user.username.capitalize(),
+        },
+    )
+    if profile.partner is None:
+        User = get_user_model()
+        partner_username = (
+            "camila"
+            if user.username.lower() == "dario"
+            else ("dario" if user.username.lower() == "camila" else None)
+        )
+        if partner_username:
+            partner_user = User.objects.filter(username=partner_username).first()
+            if partner_user:
+                profile.partner = partner_user
+                profile.save(update_fields=["partner"])
+    return profile
+
+
+def _serialize_state(user=None):
+    plans = [
+        p.to_dict()
+        for p in Plan.objects.select_related("created_by", "created_by__couple_profile")
+        .all()
+        .order_by("date")
     ]
-    return {"plans": plans, "memories": memories}
+    memories = [
+        m.to_dict()
+        for m in Memory.objects.select_related("created_by", "created_by__couple_profile")
+        .all()
+        .order_by("-happened_at", "-created_at")
+    ]
+    data = {"plans": plans, "memories": memories}
+    if user and user.is_authenticated:
+        profile = _get_or_create_profile(user)
+        data["profile"] = profile.to_dict()
+    return data
 
 
 def _parse_iso_dt(value: str):
@@ -33,10 +70,166 @@ def _parse_iso_dt(value: str):
     return dt
 
 
+def api_login_required(view_func):
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "Tu sesión expiró. Iniciá sesión nuevamente.",
+                },
+                status=401,
+            )
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped
+
+
 @ensure_csrf_cookie
+def login_view(request):
+    if request.user.is_authenticated:
+        profile = _get_or_create_profile(request.user)
+        if not profile.onboarding_completed:
+            return redirect("onboarding")
+        return redirect("index")
+
+    error_message = ""
+    entered_username = ""
+
+    if request.method == "POST":
+        entered_username = (request.POST.get("username") or "").strip().lower()
+        password = request.POST.get("password") or ""
+
+        if not entered_username or not password:
+            error_message = "Ingresá tu usuario y tu contraseña."
+        else:
+            user = authenticate(request, username=entered_username, password=password)
+            if user is not None:
+                login(request, user)
+                request.session.set_expiry(60 * 60 * 24 * 60)
+                profile = _get_or_create_profile(user)
+                if not profile.onboarding_completed:
+                    return redirect("onboarding")
+                next_url = request.POST.get("next") or request.GET.get("next") or "/"
+                if not next_url.startswith("/") or next_url.startswith("//"):
+                    next_url = "/"
+                return redirect(next_url)
+            error_message = "El usuario o la contraseña no coinciden. Revisalos e intentá de nuevo."
+
+    return render(
+        request,
+        "agenda/login.html",
+        {
+            "error_message": error_message,
+            "entered_username": entered_username,
+            "next_url": request.GET.get("next", "/"),
+        },
+    )
+
+
+@require_POST
+def logout_view(request):
+    logout(request)
+    return redirect("login")
+
+
+@ensure_csrf_cookie
+@login_required
+def onboarding_view(request):
+    profile = _get_or_create_profile(request.user)
+
+    if request.method == "GET" and profile.onboarding_completed and request.GET.get("edit") != "1":
+        return redirect("index")
+
+    error_message = ""
+    field_errors = {}
+
+    if request.method == "POST":
+        display_name = (request.POST.get("display_name") or "").strip()
+        nickname_for_partner = (request.POST.get("nickname_for_partner") or "").strip()
+        anniversary_str = (request.POST.get("anniversary_date") or "").strip()
+        favorite_plan_style = (request.POST.get("favorite_plan_style") or "date").strip()
+        favorite_food_or_place = (request.POST.get("favorite_food_or_place") or "").strip()
+        relationship_goal = (request.POST.get("relationship_goal") or "").strip()
+        love_note = (request.POST.get("love_note") or "").strip()
+        new_password = request.POST.get("new_password") or ""
+
+        if not display_name:
+            field_errors["display_name"] = "Contanos cómo querés que aparezca tu nombre."
+        elif len(display_name) > 60:
+            field_errors["display_name"] = "El nombre no puede superar los 60 caracteres."
+
+        valid_categories = {c[0] for c in Plan.CATEGORY_CHOICES}
+        if favorite_plan_style not in valid_categories:
+            favorite_plan_style = "date"
+
+        anniversary_date = None
+        if anniversary_str:
+            anniversary_date = parse_date(anniversary_str[:10])
+            if not anniversary_date:
+                field_errors["anniversary_date"] = "Elegí una fecha válida."
+
+        if new_password and len(new_password) < 4:
+            field_errors["new_password"] = "Elegí una contraseña de al menos 4 caracteres."
+
+        if not field_errors:
+            profile.display_name = display_name
+            profile.nickname_for_partner = nickname_for_partner[:60]
+            if anniversary_date:
+                profile.anniversary_date = anniversary_date
+                if profile.partner:
+                    p_prof = _get_or_create_profile(profile.partner)
+                    if not p_prof.anniversary_date:
+                        p_prof.anniversary_date = anniversary_date
+                        p_prof.save(update_fields=["anniversary_date", "updated_at"])
+            profile.favorite_plan_style = favorite_plan_style
+            profile.favorite_food_or_place = favorite_food_or_place[:140]
+            profile.relationship_goal = relationship_goal[:160]
+            profile.love_note = love_note[:300]
+            profile.onboarding_completed = True
+            profile.save()
+
+            if display_name:
+                request.user.first_name = display_name[:30]
+                request.user.save(update_fields=["first_name"])
+
+            if new_password:
+                request.user.set_password(new_password)
+                request.user.save()
+                update_session_auth_hash(request, request.user)
+
+            return redirect("index")
+
+        error_message = "Revisá los campos antes de continuar."
+
+    partner_profile = None
+    if profile.partner:
+        partner_profile = _get_or_create_profile(profile.partner)
+
+    return render(
+        request,
+        "agenda/onboarding.html",
+        {
+            "profile": profile,
+            "partner_profile": partner_profile,
+            "categories": Plan.CATEGORY_CHOICES,
+            "error_message": error_message,
+            "field_errors": field_errors,
+            "using_default_password": request.user.check_password("123456"),
+        },
+    )
+
+
+@ensure_csrf_cookie
+@login_required
 @require_GET
 def index(request):
-    state = _serialize_state()
+    profile = _get_or_create_profile(request.user)
+    if not profile.onboarding_completed:
+        return redirect("onboarding")
+
+    state = _serialize_state(request.user)
     return render(
         request,
         "agenda/index.html",
@@ -47,11 +240,101 @@ def index(request):
     )
 
 
+@api_login_required
 @require_GET
 def api_state(request):
-    return JsonResponse({"success": True, **_serialize_state()})
+    return JsonResponse({"success": True, **_serialize_state(request.user)})
 
 
+@api_login_required
+@require_POST
+def api_change_password(request):
+    current_password = request.POST.get("current_password") or ""
+    new_password = request.POST.get("new_password") or ""
+
+    field_errors = {}
+    if not current_password or not request.user.check_password(current_password):
+        field_errors["current_password"] = "Tu contraseña actual no es correcta."
+
+    if len(new_password) < 4:
+        field_errors["new_password"] = "La nueva contraseña debe tener al menos 4 caracteres."
+
+    if field_errors:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "No pudimos actualizar la contraseña.",
+                "fieldErrors": field_errors,
+            },
+            status=400,
+        )
+
+    request.user.set_password(new_password)
+    request.user.save()
+    update_session_auth_hash(request, request.user)
+
+    return JsonResponse(
+        {
+            "success": True,
+            "message": "Contraseña actualizada. Ya podés usar tu nueva clave para ingresar.",
+        }
+    )
+
+
+@api_login_required
+@require_POST
+def api_update_profile(request):
+    profile = _get_or_create_profile(request.user)
+    display_name = (request.POST.get("display_name") or "").strip()
+    nickname_for_partner = (request.POST.get("nickname_for_partner") or "").strip()
+    anniversary_str = (request.POST.get("anniversary_date") or "").strip()
+    favorite_plan_style = (request.POST.get("favorite_plan_style") or profile.favorite_plan_style).strip()
+    favorite_food_or_place = (request.POST.get("favorite_food_or_place") or "").strip()
+    relationship_goal = (request.POST.get("relationship_goal") or "").strip()
+    love_note = (request.POST.get("love_note") or "").strip()
+
+    field_errors = {}
+    if not display_name:
+        field_errors["display_name"] = "Escribí tu nombre."
+
+    anniversary_date = None
+    if anniversary_str:
+        anniversary_date = parse_date(anniversary_str[:10])
+        if not anniversary_date:
+            field_errors["anniversary_date"] = "Fecha de aniversario inválida."
+
+    if field_errors:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Revisá los datos de tu perfil.",
+                "fieldErrors": field_errors,
+            },
+            status=400,
+        )
+
+    valid_categories = {c[0] for c in Plan.CATEGORY_CHOICES}
+    profile.display_name = display_name[:60]
+    profile.nickname_for_partner = nickname_for_partner[:60]
+    if anniversary_date:
+        profile.anniversary_date = anniversary_date
+    profile.favorite_plan_style = favorite_plan_style if favorite_plan_style in valid_categories else "date"
+    profile.favorite_food_or_place = favorite_food_or_place[:140]
+    profile.relationship_goal = relationship_goal[:160]
+    profile.love_note = love_note[:300]
+    profile.onboarding_completed = True
+    profile.save()
+
+    return JsonResponse(
+        {
+            "success": True,
+            "message": "Actualizamos tu perfil y los gustos de pareja.",
+            **_serialize_state(request.user),
+        }
+    )
+
+
+@api_login_required
 @require_POST
 def api_create_plan(request):
     title = (request.POST.get("title") or "").strip()
@@ -96,6 +379,7 @@ def api_create_plan(request):
         location=location,
         description=description,
         status="planned",
+        created_by=request.user,
     )
 
     return JsonResponse(
@@ -103,11 +387,12 @@ def api_create_plan(request):
             "success": True,
             "message": f"“{plan.title}” se sumó a nuestra agenda.",
             "plan": plan.to_dict(),
-            **_serialize_state(),
+            **_serialize_state(request.user),
         }
     )
 
 
+@api_login_required
 @require_POST
 def api_reschedule_plan(request):
     plan_id = (request.POST.get("id") or "").strip()
@@ -134,11 +419,12 @@ def api_reschedule_plan(request):
             "success": True,
             "message": f"Reprogramamos “{plan.title}” para la nueva fecha.",
             "plan": plan.to_dict(),
-            **_serialize_state(),
+            **_serialize_state(request.user),
         }
     )
 
 
+@api_login_required
 @require_POST
 def api_complete_plan(request):
     plan_id = (request.POST.get("id") or "").strip()
@@ -158,11 +444,12 @@ def api_complete_plan(request):
             "success": True,
             "message": f"¡“{plan.title}” marcado como realizado! Ya podés guardar su recuerdo en el álbum.",
             "plan": plan.to_dict(),
-            **_serialize_state(),
+            **_serialize_state(request.user),
         }
     )
 
 
+@api_login_required
 @require_POST
 def api_create_memory(request):
     plan_id = (request.POST.get("plan") or "").strip()
@@ -208,6 +495,7 @@ def api_create_memory(request):
         happened_at=happened_date,
         photo=photo,
         photo_alt=plan.title,
+        created_by=request.user,
     )
 
     return JsonResponse(
@@ -215,7 +503,7 @@ def api_create_memory(request):
             "success": True,
             "message": f"Guardamos el recuerdo de “{plan.title}” en nuestro álbum.",
             "memory": memory.to_dict(),
-            **_serialize_state(),
+            **_serialize_state(request.user),
         }
     )
 
