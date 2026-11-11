@@ -1089,17 +1089,29 @@
                 ? `<span class="rounded-full bg-[#eee5db] px-3 py-1 text-[11px] font-bold text-[#7e6a5d]">Reprogramado</span>`
                 : "";
             const footerActionsHtml = isCompleted
-              ? (linkedMemory
-                  ? `<button data-action="view-memory" data-plan-id="${escapeHtml(plan.id)}" data-memory-id="${escapeHtml(linkedMemory.id)}" class="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#3c5c46] px-5 py-2 text-xs font-bold text-white transition active:scale-95 sm:hover:bg-[#314c39]" type="button">
-                       Ver recuerdo
-                       <svg aria-hidden="true" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                         <path d="M5 12h14"></path>
-                         <path d="m13 6 6 6-6 6"></path>
-                       </svg>
-                     </button>`
-                  : `<button data-action="add-memory" data-plan-id="${escapeHtml(plan.id)}" class="min-h-11 rounded-full bg-[#f3f8f4] border border-[#d7e2da] px-4 py-2 text-xs font-bold text-[#42634d] transition active:scale-95 sm:hover:bg-[#dce8df]" type="button">
-                       Agregar recuerdo
-                     </button>`)
+              ? `<div class="flex flex-wrap items-center gap-2">
+                  ${
+                    linkedMemory
+                      ? `<button data-action="view-memory" data-plan-id="${escapeHtml(plan.id)}" data-memory-id="${escapeHtml(linkedMemory.id)}" class="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#3c5c46] px-5 py-2 text-xs font-bold text-white transition active:scale-95 sm:hover:bg-[#314c39]" type="button">
+                           Ver recuerdo
+                           <svg aria-hidden="true" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                             <path d="M5 12h14"></path>
+                             <path d="m13 6 6 6-6 6"></path>
+                           </svg>
+                         </button>`
+                      : `<button data-action="add-memory" data-plan-id="${escapeHtml(plan.id)}" class="min-h-11 rounded-full bg-[#f3f8f4] border border-[#d7e2da] px-4 py-2 text-xs font-bold text-[#42634d] transition active:scale-95 sm:hover:bg-[#dce8df]" type="button">
+                           Agregar recuerdo
+                         </button>`
+                  }
+                  <button data-action="delete-completed" data-plan-id="${escapeHtml(plan.id)}" class="grid h-11 w-11 place-items-center rounded-full text-[#9a665a] transition active:bg-[#f2ddd6] sm:hover:bg-[#f6eae6]" type="button" aria-label="Borrar plan ${escapeHtml(plan.title)}" title="Borrar plan realizado">
+                    <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M3 6h18"></path>
+                      <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"></path>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                      <path d="M10 11v6M14 11v6"></path>
+                    </svg>
+                  </button>
+                </div>`
               : `<button data-action="cancel" data-plan-id="${escapeHtml(plan.id)}" class="grid h-11 w-11 place-items-center rounded-full text-[#9a665a] transition active:bg-[#f2ddd6] sm:hover:bg-[#f6eae6]" type="button" aria-label="Cancelar ${escapeHtml(plan.title)}" title="Cancelar plan">
                    <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                      <circle cx="12" cy="12" r="9"></circle>
@@ -1182,20 +1194,30 @@
             const hasMem = rememberedPlanIds.has(p.id);
             const sub = hasMem ? "Sumar más recuerdos" : "Agregar recuerdo";
             return `
-              <button type="button" data-recent-plan-id="${escapeHtml(p.id)}" class="recent-memory-card flex min-w-[16rem] snap-start items-center gap-3 rounded-[1.35rem] border border-[#d7e2da] bg-[#f3f8f4] p-4 text-left transition active:scale-[0.98]">
-                <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#dce8df] text-[#42634d]">
-                  <svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="m5 12 4 4L19 6"></path>
+              <div class="recent-memory-card flex min-w-[16rem] snap-start items-center gap-2 rounded-[1.35rem] border border-[#d7e2da] bg-[#f3f8f4] p-3 text-left">
+                <button type="button" data-recent-plan-id="${escapeHtml(p.id)}" class="flex min-w-0 flex-1 items-center gap-3 p-1 text-left transition active:scale-[0.98]">
+                  <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#dce8df] text-[#42634d]">
+                    <svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="m5 12 4 4L19 6"></path>
+                    </svg>
+                  </span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block truncate font-serif text-lg font-semibold text-[#3d2e29]">${escapeHtml(p.title)}</span>
+                    <span class="mt-0.5 block text-xs text-[#718076]">${sub}</span>
+                  </span>
+                  <svg aria-hidden="true" class="h-4 w-4 shrink-0 text-[#42634d]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 5v14M5 12h14"></path>
                   </svg>
-                </span>
-                <span class="min-w-0 flex-1">
-                  <span class="block truncate font-serif text-lg font-semibold text-[#3d2e29]">${escapeHtml(p.title)}</span>
-                  <span class="mt-0.5 block text-xs text-[#718076]">${sub}</span>
-                </span>
-                <svg aria-hidden="true" class="h-4 w-4 shrink-0 text-[#42634d]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 5v14M5 12h14"></path>
-                </svg>
-              </button>
+                </button>
+                <button type="button" data-recent-delete-id="${escapeHtml(p.id)}" class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[#9a665a] transition active:bg-[#f2ddd6] sm:hover:bg-[#f6eae6]" aria-label="Borrar plan ${escapeHtml(p.title)}" title="Borrar plan realizado">
+                  <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 6h18"></path>
+                    <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"></path>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                    <path d="M10 11v6M14 11v6"></path>
+                  </svg>
+                </button>
+              </div>
             `;
           }).join("");
         } else if (recentWrap) {
@@ -1777,7 +1799,47 @@
         selectedDayKey = selectedDayKey === key ? null : key;
         render();
       });
+      function confirmRemovePlan(plan) {
+        if (!plan) return;
+        const isCompleted = plan.status === "completed";
+        const hasLinkedMemory = state.memories.some((m) => m.planId === plan.id);
+        openConfirmDialog({
+          eyebrow: isCompleted ? "Borrar plan" : "Cancelar plan",
+          title: isCompleted ? `¿Borrar “${plan.title}”?` : `¿Cancelar “${plan.title}”?`,
+          description: isCompleted
+            ? (hasLinkedMemory
+                ? "Se quitará este plan de la agenda, pero su recuerdo en el álbum se conserva."
+                : "Se eliminará este plan realizado de la agenda.")
+            : "Se quitará de sus próximos planes agendados.",
+          confirmLabel: isCompleted ? "Sí, borrar plan" : "Sí, cancelar plan",
+          onConfirm: async () => {
+            const fd = new FormData();
+            fd.append("id", plan.id);
+            const res = await fetch("/api/plans/cancel/", {
+              method: "POST",
+              headers: { "X-CSRFToken": getCsrfToken() },
+              body: fd
+            });
+            const data = await res.json();
+            if (data.success) {
+              state.plans = data.plans;
+              state.memories = data.memories;
+              render();
+              showFeedback(data.message, true);
+            } else {
+              showFeedback(data.message || "No pudimos quitar el plan.", false);
+            }
+          }
+        });
+      }
+
       document.getElementById("agenda-recent-completed-cards").addEventListener("click", (e) => {
+        const delBtn = e.target.closest("button[data-recent-delete-id]");
+        if (delBtn) {
+          const plan = state.plans.find((p) => p.id === delBtn.getAttribute("data-recent-delete-id"));
+          if (plan) confirmRemovePlan(plan);
+          return;
+        }
         const card = e.target.closest("button[data-recent-plan-id]");
         if (!card) return;
         const plan = state.plans.find((p) => p.id === card.getAttribute("data-recent-plan-id"));
@@ -1927,31 +1989,8 @@
           openCreateMemoryDialog(plan);
         } else if (action === "reschedule") {
           openRescheduleDialog(plan);
-        } else if (action === "cancel") {
-          openConfirmDialog({
-            eyebrow: "Cancelar plan",
-            title: `¿Cancelar “${plan.title}”?`,
-            description: "Se quitará de sus próximos planes agendados.",
-            confirmLabel: "Sí, cancelar plan",
-            onConfirm: async () => {
-              const fd = new FormData();
-              fd.append("id", plan.id);
-              const res = await fetch("/api/plans/cancel/", {
-                method: "POST",
-                headers: { "X-CSRFToken": getCsrfToken() },
-                body: fd
-              });
-              const data = await res.json();
-              if (data.success) {
-                state.plans = data.plans;
-                state.memories = data.memories;
-                render();
-                showFeedback(data.message, true);
-              } else {
-                showFeedback(data.message || "No pudimos cancelar el plan.", false);
-              }
-            }
-          });
+        } else if (action === "cancel" || action === "delete-completed") {
+          confirmRemovePlan(plan);
         } else if (action === "complete") {
           btn.disabled = true;
           try {

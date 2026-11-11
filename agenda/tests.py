@@ -280,6 +280,17 @@ class NosotrosAgendaTests(TestCase):
         self.assertEqual(res_cancel.status_code, 200)
         self.assertEqual(Plan.objects.count(), 6)
 
+        # Delete a completed plan cleanly via api_cancel_plan (keeping any linked memories intact)
+        completed_plan = Plan.objects.filter(status="completed").first()
+        self.assertIsNotNone(completed_plan)
+        res_del_completed = self.client.post(
+            reverse("api_cancel_plan"),
+            {"id": str(completed_plan.id)},
+        )
+        self.assertEqual(res_del_completed.status_code, 200)
+        self.assertIn("Borramos", res_del_completed.json()["message"])
+        self.assertEqual(Plan.objects.count(), 5)
+
     def test_clear_nosotros_data_and_users_only_seed(self):
         self.assertGreater(Plan.objects.count(), 0)
         self.assertGreater(Memory.objects.count(), 0)

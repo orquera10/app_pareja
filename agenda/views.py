@@ -471,11 +471,13 @@ def api_cancel_plan(request):
     plan_id = _extract_id(request)
     plan = get_object_or_404(Plan, id=plan_id)
     title = plan.title
+    was_completed = plan.status == "completed"
     plan.delete()
+    msg = f"Borramos “{title}” de la agenda." if was_completed else f"Cancelamos “{title}” de la agenda."
     return JsonResponse(
         {
             "success": True,
-            "message": f"Cancelamos “{title}” de la agenda.",
+            "message": msg,
             **_serialize_state(request.user),
         }
     )
