@@ -294,3 +294,76 @@ class NosotrosAgendaTests(TestCase):
         call_command("seed_nosotros", users_only=True)
         self.assertEqual(Plan.objects.count(), 0)
         self.assertEqual(Memory.objects.count(), 0)
+
+    def test_individual_memory_notes_and_ownership(self):
+        dario = User.objects.get(username="dario")
+        camila = User.objects.get(username="camila")
+        CoupleProfile.objects.filter(user=dario).update(display_name="Darío")
+        CoupleProfile.objects.filter(user=camila).update(display_name="Camila")
+
+        completed_plan = Plan.objects.filter(status="completed").first()
+        self.assertIsNotNone(completed_plan)
+
+        # 1. Darío creates a memory with his initial note
+        self.client.force_login(dario)
+        res_create = self.client.post(
+            reverse("api_create_memory"),
+            {
+                "plan": str(completed_plan.id),
+                "happenedAt": "2026-11-10",
+                "note": "Café riquísimo",
+            },
+        )
+        self.assertEqual(res_create.status_code, 200)
+        mem_data = res_create.json()["memory"]
+        self.assertEqual(len(mem_data["notes"]), 1)
+        self.assertEqual(mem_data["notes"][0]["authorName"], "Darío")
+        self.assertEqual(mem_data["notes"][0]["authorInitial"], "D")
+        self.assertTrue(mem_data["notes"][0]["isMine"])
+        self.assertEqual(mem_data["myNote"], "Café riquísimo")
+
+        # 2. Camila sees Darío's note as read-only (isMine=False) and can add her own
+        self.client.force_login(camila)
+        res_state_camila = self.client.get(reverse("api_state"))
+        self.assertEqual(res_state_camila.status_code, 200)
+        camila_mem = next(m for m in res_state_camila.json()["memories"] if m["id"] == mem_data["id"])
+        self.assertEqual(len(camila_mem["notes"]), 1)
+        self.assertFalse(camila_mem["notes"][0]["isMine"])
+        self.assertEqual(camila_mem["myNote"], "")
+
+        # Validation: empty text fails
+        res_empty = self.client.post(
+            reverse("api_save_memory_note"),
+            {"memoryId": mem_data["id"], "text": "   "},
+        )
+        self.assertEqual(res_empty.status_code, 400)
+
+        # Camila saves her own note -> Darío's note stays intact
+        res_camila_note = self.client.post(
+            reverse("api_save_memory_note"),
+            {"memoryId": mem_data["id"], "text": "La mejor tarde juntos"},
+        )
+        self.assertEqual(res_camila_note.status_code, 200)
+        notes_camila_view = res_camila_note.json()["memory"]["notes"]
+        self.assertEqual(len(notes_camila_view), 2)
+        self.assertEqual(notes_camila_view[0]["authorName"], "Darío")
+        self.assertEqual(notes_camila_view[0]["text"], "Café riquísimo")
+        self.assertFalse(notes_camila_view[0]["isMine"])
+        self.assertEqual(notes_camila_view[1]["authorName"], "Camila")
+        self.assertEqual(notes_camila_view[1]["authorInitial"], "C")
+        self.assertEqual(notes_camila_view[1]["text"], "La mejor tarde juntos")
+        self.assertTrue(notes_camila_view[1]["isMine"])
+
+        # 3. Darío updates ONLY his note without overwriting Camila's note
+        self.client.force_login(dario)
+        res_dario_edit = self.client.post(
+            reverse("api_save_memory_note"),
+            {"memoryId": mem_data["id"], "text": "Café riquísimo y muchas risas"},
+        )
+        self.assertEqual(res_dario_edit.status_code, 200)
+        notes_dario_view = res_dario_edit.json()["memory"]["notes"]
+        self.assertEqual(len(notes_dario_view), 2)
+        self.assertEqual(notes_dario_view[0]["text"], "Café riquísimo y muchas risas")
+        self.assertTrue(notes_dario_view[0]["isMine"])
+        self.assertEqual(notes_dario_view[1]["text"], "La mejor tarde juntos")
+        self.assertFalse(notes_dario_view[1]["isMine"])

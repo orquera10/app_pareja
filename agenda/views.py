@@ -14,7 +14,7 @@ from django.utils.dateparse import parse_date, parse_datetime
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_GET, require_POST
 
-from .models import CoupleProfile, Memory, MemoryPhoto, Plan
+from .models import CoupleProfile, Memory, MemoryNote, MemoryPhoto, Plan
 from .storage_client import delete_from_media_storage, upload_to_media_storage
 
 
@@ -48,9 +48,9 @@ def _serialize_state(user=None):
         .order_by("date")
     ]
     memories = [
-        m.to_dict()
+        m.to_dict(viewer=user)
         for m in Memory.objects.select_related("created_by", "created_by__couple_profile")
-        .prefetch_related("photos")
+        .prefetch_related("photos", "notes__author__couple_profile")
         .all()
         .order_by("-happened_at", "-created_at")
     ]
@@ -580,6 +580,11 @@ def api_create_memory(request):
         photo_alt=plan_title[:160],
         created_by=request.user,
     )
+    MemoryNote.objects.create(
+        memory=memory,
+        author=request.user,
+        text=note,
+    )
     if valid_files:
         _save_memory_photo_files(memory, valid_files)
 
@@ -587,7 +592,7 @@ def api_create_memory(request):
         {
             "success": True,
             "message": f"Guardamos el recuerdo de “{memory.plan_title}” en nuestro álbum.",
-            "memory": memory.to_dict(),
+            "memory": memory.to_dict(viewer=request.user),
             **_serialize_state(request.user),
         }
     )
@@ -613,7 +618,7 @@ def api_add_memory_photos(request):
         {
             "success": True,
             "message": f"Sumamos {added} foto{'s' if added != 1 else ''} a “{memory.plan_title}”.",
-            "memory": memory.to_dict(),
+            "memory": memory.to_dict(viewer=request.user),
             **_serialize_state(request.user),
         }
     )
@@ -662,7 +667,78 @@ def api_delete_memory_photo(request):
         {
             "success": True,
             "message": f"Eliminamos la foto de “{memory.plan_title}”.",
-            "memory": memory.to_dict(),
+            "memory": memory.to_dict(viewer=request.user),
+            **_serialize_state(request.user),
+        }
+    )
+
+
+@api_login_required
+@require_POST
+def api_save_memory_note(request):
+    memory_id = (request.POST.get("memoryId") or request.POST.get("id") or "").strip()
+    clean_text = (request.POST.get("text") or request.POST.get("note") or "").strip()
+
+    if not memory_id:
+        return JsonResponse(
+            {"success": False, "message": "Falta identificar el recuerdo."},
+            status=400,
+        )
+    try:
+        parsed_uuid = uuid.UUID(memory_id)
+    except ValueError:
+        return JsonResponse(
+            {"success": False, "message": "Identificador de recuerdo inválido."},
+            status=400,
+        )
+
+    if not clean_text:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Contanos qué querés recordar antes de guardar.",
+                "fieldErrors": {"text": "Escribí tu nota para este recuerdo."},
+            },
+            status=400,
+        )
+    if len(clean_text) > 500:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "La nota no puede superar los 500 caracteres.",
+                "fieldErrors": {"text": "Máximo 500 caracteres."},
+            },
+            status=400,
+        )
+
+    memory = get_object_or_404(Memory, id=parsed_uuid)
+
+    # Preserve creator's legacy note as an explicit MemoryNote row before adding partner's note.
+    if memory.created_by and (memory.note or "").strip() and not memory.notes.exists():
+        MemoryNote.objects.get_or_create(
+            memory=memory,
+            author=memory.created_by,
+            defaults={"text": memory.note.strip()[:500]},
+        )
+
+    _, created = MemoryNote.objects.update_or_create(
+        memory=memory,
+        author=request.user,
+        defaults={"text": clean_text},
+    )
+    if memory.created_by_id == request.user.id:
+        memory.note = clean_text
+        memory.save(update_fields=["note"])
+
+    return JsonResponse(
+        {
+            "success": True,
+            "message": (
+                f"Guardamos lo que querés recordar en “{memory.plan_title}”."
+                if created
+                else f"Actualizamos tu nota en “{memory.plan_title}”."
+            ),
+            "memory": memory.to_dict(viewer=request.user),
             **_serialize_state(request.user),
         }
     )

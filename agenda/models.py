@@ -4,6 +4,20 @@ from django.conf import settings
 from django.db import models
 
 
+def _user_display_info(user) -> tuple[str, str]:
+    """Return (display_name, initial) for a user using their couple profile if available."""
+    if not user:
+        return "Nosotros", "N"
+    prof = getattr(user, "couple_profile", None)
+    name = (
+        prof.display_name
+        if prof and prof.display_name
+        else (user.first_name or user.username.capitalize())
+    )
+    name = (name or "Nosotros").strip()
+    return name, name[0].upper()
+
+
 class Plan(models.Model):
     CATEGORY_CHOICES = [
         ("date", "Cita"),
@@ -141,21 +155,52 @@ class Memory(models.Model):
                 )
         return items
 
-    def to_dict(self) -> dict:
-        photos_list = self.get_photos_list()
-        author_name = ""
-        if self.created_by:
-            prof = getattr(self.created_by, "couple_profile", None)
-            author_name = (
-                prof.display_name if prof and prof.display_name else self.created_by.username.capitalize()
+    def get_notes_list(self, viewer=None) -> list[dict]:
+        viewer_id = viewer.id if (viewer and getattr(viewer, "is_authenticated", False)) else None
+        items = []
+        for n in self.notes.all():
+            name, initial = _user_display_info(n.author)
+            items.append(
+                {
+                    "id": str(n.id),
+                    "authorId": n.author_id,
+                    "authorName": name,
+                    "authorInitial": initial,
+                    "text": n.text,
+                    "isMine": bool(viewer_id and n.author_id == viewer_id),
+                }
             )
+        if not items and (self.note or "").strip():
+            name, initial = _user_display_info(self.created_by)
+            items.append(
+                {
+                    "id": f"legacy-{self.id}",
+                    "authorId": self.created_by_id,
+                    "authorName": name,
+                    "authorInitial": initial,
+                    "text": self.note,
+                    "isMine": bool(viewer_id and self.created_by_id == viewer_id),
+                }
+            )
+        return items
+
+    def to_dict(self, viewer=None) -> dict:
+        photos_list = self.get_photos_list()
+        notes_list = self.get_notes_list(viewer=viewer)
+        author_name, author_initial = (
+            _user_display_info(self.created_by) if self.created_by else ("", "")
+        )
+        my_note = next((n["text"] for n in notes_list if n["isMine"]), "")
         return {
             "id": str(self.id),
             "planId": str(self.plan_id) if self.plan_id else None,
             "planTitle": self.plan_title,
             "note": self.note,
+            "notes": notes_list,
+            "myNote": my_note,
             "happenedAt": f"{self.happened_at.isoformat()}T12:00:00.000Z",
             "authorName": author_name,
+            "authorInitial": author_initial,
             "externalAlbumUrl": self.external_album_url or "",
             "photos": photos_list,
             "photo": photos_list[0] if photos_list else None,
@@ -195,6 +240,35 @@ class MemoryPhoto(models.Model):
         if self.static_url:
             return self.static_url
         return None
+
+
+class MemoryNote(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    memory = models.ForeignKey(
+        Memory,
+        on_delete=models.CASCADE,
+        related_name="notes",
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="memory_notes",
+    )
+    text = models.TextField("Qué querés recordar", max_length=500)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "nosotros_memory_note"
+        ordering = ["created_at", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["memory", "author"], name="unique_memory_note_per_author"
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"Nota de {self.author} en {self.memory}"
 
 
 class CoupleProfile(models.Model):
