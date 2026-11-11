@@ -191,6 +191,19 @@ class NosotrosAgendaTests(TestCase):
         created_plan.refresh_from_db()
         self.assertEqual(created_plan.status, "postponed")
 
+        # Cannot attach memory before plan is completed
+        res_mem_before_complete = self.client.post(
+            reverse("api_create_memory"),
+            {
+                "plan": str(created_plan.id),
+                "happenedAt": date.today().isoformat(),
+                "note": "Todavía no pasó.",
+            },
+        )
+        self.assertEqual(res_mem_before_complete.status_code, 400)
+        self.assertFalse(res_mem_before_complete.json()["success"])
+        self.assertIn("plan", res_mem_before_complete.json()["fieldErrors"])
+
         res_complete = self.client.post(
             reverse("api_complete_plan"),
             {"id": str(created_plan.id)},

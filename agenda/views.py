@@ -524,7 +524,6 @@ def api_create_memory(request):
     happened_at_str = (request.POST.get("happenedAt") or "").strip()
     note = (request.POST.get("note") or "").strip()
     external_album_url = (request.POST.get("externalAlbumUrl") or "").strip()
-    mark_completed = (request.POST.get("markCompleted") or "1").strip() != "0"
 
     raw_files = list(request.FILES.getlist("photos"))
     single_photo = request.FILES.get("photo")
@@ -535,6 +534,8 @@ def api_create_memory(request):
     plan = Plan.objects.filter(id=plan_id).first() if plan_id else None
     if plan_id and not plan:
         field_errors["plan"] = "No encontramos ese plan."
+    elif plan and plan.status != "completed":
+        field_errors["plan"] = "Primero tenés que marcar este plan como realizado para poder subirle recuerdos."
 
     plan_title = plan.title if plan else custom_title
     if not plan and not plan_title:
@@ -568,10 +569,6 @@ def api_create_memory(request):
             },
             status=400,
         )
-
-    if plan and mark_completed and plan.status != "completed":
-        plan.status = "completed"
-        plan.save(update_fields=["status", "updated_at"])
 
     memory = Memory.objects.create(
         plan=plan,

@@ -367,11 +367,6 @@
             <input class="form-control" id="memory-custom-title" name="customTitle" maxlength="120" placeholder="Ej. Paseo improvisado de domingo" />
           </div>
 
-          <label id="memory-mark-completed-wrap" class="hidden flex items-center gap-2.5 rounded-2xl bg-[#f5efe8] px-4 py-3 text-xs font-semibold text-[#4b3b35]">
-            <input type="checkbox" id="memory-mark-completed" checked class="h-4 w-4 accent-[#b96550]" />
-            <span>Marcar este plan como realizado al guardar</span>
-          </label>
-
           <label class="block">
             <span class="mb-2 block text-sm font-semibold text-[#4b3b35]">Fecha del recuerdo</span>
             <input class="form-control" type="date" name="happenedAt" id="memory-date-input" required />
@@ -1169,13 +1164,12 @@
           recentWrap.classList.add("hidden");
         }
 
-        // 3. Render Ready Plans Strip inside Recuerdos (Figma Make "LISTOS PARA RECORDAR" cards)
+        // 3. Render Ready Plans Strip inside Recuerdos (ONLY completed plans — uncompleted ones cannot get memories yet)
         const readyStrip = document.getElementById("ready-plans-strip");
         const readyCards = document.getElementById("ready-plans-cards");
         const orderedReadyPlans = [
           ...completedPlans.filter((p) => !rememberedPlanIds.has(p.id)).sort((a, b) => new Date(b.date) - new Date(a.date)),
           ...completedPlans.filter((p) => rememberedPlanIds.has(p.id)).sort((a, b) => new Date(a.date) - new Date(b.date)),
-          ...upcomingPlans,
         ];
         if (orderedReadyPlans.length > 0 && readyStrip && readyCards) {
           readyStrip.classList.remove("hidden");
@@ -1183,23 +1177,18 @@
             const d = new Date(p.date);
             const monthShort = monthShortFmt.format(d).replace(".", "").toUpperCase();
             const dayNum = d.getUTCDate();
-            const isCompleted = p.status === "completed";
-            const dateBadgeCls = isCompleted ? "bg-[#dce8df] text-[#42634d]" : "bg-[#f2ddd6] text-[#8e4637]";
-            const statusLabel = isCompleted
-              ? `<span class="flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#42634d]">
-                   <svg aria-hidden="true" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"></path></svg>
-                   Realizado
-                 </span>`
-              : `<span class="text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#b05f4b]">Programado</span>`;
             const subText = rememberedPlanIds.has(p.id) ? "Agregar otro recuerdo..." : "Agregar recuerdo...";
             return `
               <button type="button" data-quick-plan-id="${escapeHtml(p.id)}" class="ready-plan-card">
-                <span class="flex h-16 w-14 shrink-0 flex-col items-center justify-center rounded-2xl ${dateBadgeCls}">
+                <span class="flex h-16 w-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-[#dce8df] text-[#42634d]">
                   <span class="text-[10px] font-black uppercase tracking-wider">${escapeHtml(monthShort)}</span>
                   <span class="font-serif text-2xl leading-none">${dayNum}</span>
                 </span>
                 <span class="block min-w-0 flex-1">
-                  ${statusLabel}
+                  <span class="flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#42634d]">
+                    <svg aria-hidden="true" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"></path></svg>
+                    Realizado
+                  </span>
                   <span class="mt-0.5 block truncate font-serif text-xl leading-tight text-[#30231f]">${escapeHtml(p.title)}</span>
                   <span class="mt-0.5 block truncate text-xs text-[#7a6a62]">${subText}</span>
                 </span>
@@ -1425,32 +1414,28 @@
       }
 
       function syncMemoryDialogFields(selectedPlanId) {
-        const plan = state.plans.find((p) => p.id === selectedPlanId) || null;
+        const plan = state.plans.find((p) => p.id === selectedPlanId && p.status === "completed") || null;
         const customWrap = document.getElementById("memory-custom-title-wrap");
-        const markWrap = document.getElementById("memory-mark-completed-wrap");
         const dateInput = document.getElementById("memory-date-input");
         const titleEl = document.getElementById("dialog-memory-title");
         if (plan) {
           titleEl.textContent = plan.title;
           customWrap.classList.add("hidden");
-          if (plan.status !== "completed") {
-            markWrap.classList.remove("hidden");
-            document.getElementById("memory-mark-completed").checked = true;
-          } else {
-            markWrap.classList.add("hidden");
-          }
           if (!dateInput.value || plan.date) {
             dateInput.value = (plan.date || "").slice(0, 10) || new Date().toISOString().slice(0, 10);
           }
         } else {
           titleEl.textContent = "Nuevo recuerdo";
           customWrap.classList.remove("hidden");
-          markWrap.classList.add("hidden");
           if (!dateInput.value) dateInput.value = new Date().toISOString().slice(0, 10);
         }
       }
 
       function openCreateMemoryDialog(plan = null) {
+        if (plan && plan.status !== "completed") {
+          showFeedback("Marcá primero este plan como realizado para poder subirle recuerdos.", false);
+          return;
+        }
         showFeedback(null);
         const form = document.getElementById("form-create-memory");
         form.reset();
@@ -1460,12 +1445,11 @@
         clearFormErrors(form, "memory-form-error");
 
         const select = document.getElementById("memory-plan-select");
-        const orderedPlans = [
-          ...state.plans.filter((p) => p.status === "completed"),
-          ...state.plans.filter((p) => p.status !== "completed"),
-        ];
+        const completedOnly = state.plans
+          .filter((p) => p.status === "completed")
+          .sort((a, b) => new Date(b.date) - new Date(a.date));
         select.innerHTML = `<option value="">Momento libre (sin plan previo)</option>` +
-          orderedPlans.map((p) => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.title)} (${p.status === "completed" ? "Realizado" : "Programado"})</option>`).join("");
+          completedOnly.map((p) => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.title)} (Realizado)</option>`).join("");
         select.value = plan ? plan.id : "";
         document.getElementById("memory-date-input").value = plan && plan.date ? plan.date.slice(0, 10) : new Date().toISOString().slice(0, 10);
         syncMemoryDialogFields(select.value);
@@ -1917,7 +1901,6 @@
         try {
           const fd = new FormData(form);
           fd.delete("photos");
-          fd.set("markCompleted", document.getElementById("memory-mark-completed").checked ? "1" : "0");
           pendingCreateFiles.forEach((item) => fd.append("photos", item.blob, item.name));
 
           const res = await fetch("/api/memories/create/", {
