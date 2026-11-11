@@ -17,7 +17,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . /app/
 
-RUN chmod +x /app/entrypoint.sh && \
+RUN sed -i 's/\r$//' /app/entrypoint.sh && \
+    chmod +x /app/entrypoint.sh && \
     mkdir -p /app/staticfiles /app/media && \
     python manage.py collectstatic --noinput
 
