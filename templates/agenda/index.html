@@ -467,13 +467,23 @@
     <dialog id="dialog-photo-lightbox" class="nosotros-dialog" closedby="any" aria-label="Visor de fotos del recuerdo">
       <div class="relative w-full max-w-3xl overflow-hidden rounded-[1.75rem] bg-[#211815] text-white shadow-2xl">
         <div class="flex items-center justify-between gap-4 border-b border-white/10 px-5 py-3.5">
-          <div class="min-w-0">
+          <div class="min-w-0 flex-1">
             <h2 id="lightbox-title" class="truncate font-serif text-xl">Recuerdo</h2>
             <p id="lightbox-counter" class="text-xs text-white/70">1 / 1</p>
           </div>
-          <button data-close-dialog="dialog-photo-lightbox" type="button" class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/15 text-white hover:bg-white/25" aria-label="Cerrar visor">
-            <svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="m6 6 12 12M18 6 6 18"></path></svg>
-          </button>
+          <div class="flex shrink-0 items-center gap-2">
+            <button id="lightbox-delete-photo-btn" type="button" class="lightbox-trash-btn" aria-label="Eliminar esta foto del recuerdo" title="Eliminar esta foto">
+              <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18"></path>
+                <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"></path>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                <path d="M10 11v6M14 11v6"></path>
+              </svg>
+            </button>
+            <button data-close-dialog="dialog-photo-lightbox" type="button" class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/15 text-white hover:bg-white/25" aria-label="Cerrar visor">
+              <svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="m6 6 12 12M18 6 6 18"></path></svg>
+            </button>
+          </div>
         </div>
         <div id="lightbox-body" class="relative bg-black"></div>
       </div>
@@ -1220,6 +1230,16 @@
             </div>
           `;
         } else {
+          const photoTrashBtn = (memId, photoId, label) => `
+            <button type="button" data-mem-action="delete-photo" data-memory-id="${escapeHtml(memId)}" data-photo-id="${escapeHtml(photoId)}" class="photo-trash-btn" aria-label="${escapeHtml(label)}" title="Eliminar esta foto">
+              <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18"></path>
+                <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"></path>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                <path d="M10 11v6M14 11v6"></path>
+              </svg>
+            </button>
+          `;
           const memHtml = state.memories.map((mem, idx) => {
             const aspectClass = idx % 3 === 1 ? "aspect-[4/5]" : "aspect-[4/3]";
             const happenedStr = dateFmtLong.format(new Date(mem.happenedAt));
@@ -1227,9 +1247,12 @@
             let mediaBlock = "";
             if (photos.length === 1) {
               mediaBlock = `
-                <button type="button" data-open-lightbox="${escapeHtml(mem.id)}" data-slide-index="0" class="relative block w-full ${aspectClass} overflow-hidden text-left" aria-label="Ampliar foto de ${escapeHtml(mem.planTitle)}">
-                  <img src="${escapeHtml(photos[0].url)}" alt="${escapeHtml(photos[0].alt || mem.planTitle)}" loading="lazy" decoding="async" class="object-cover" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0" />
-                </button>
+                <div class="relative">
+                  <button type="button" data-open-lightbox="${escapeHtml(mem.id)}" data-slide-index="0" class="relative block w-full ${aspectClass} overflow-hidden text-left" aria-label="Ampliar foto de ${escapeHtml(mem.planTitle)}">
+                    <img src="${escapeHtml(photos[0].url)}" alt="${escapeHtml(photos[0].alt || mem.planTitle)}" loading="lazy" decoding="async" class="object-cover" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0" />
+                  </button>
+                  ${photoTrashBtn(mem.id, photos[0].id, `Eliminar foto de ${mem.planTitle}`)}
+                </div>
               `;
             } else if (photos.length > 1) {
               const slidesHtml = photos.map((ph, pIdx) => `
@@ -1237,6 +1260,7 @@
                   <button type="button" data-open-lightbox="${escapeHtml(mem.id)}" data-slide-index="${pIdx}" class="relative block w-full ${aspectClass} overflow-hidden" aria-label="Ampliar foto ${pIdx + 1} de ${escapeHtml(mem.planTitle)}">
                     <img src="${escapeHtml(ph.url)}" alt="${escapeHtml(ph.alt || mem.planTitle)}" loading="${pIdx === 0 ? "eager" : "lazy"}" decoding="async" class="object-cover" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0" />
                   </button>
+                  ${photoTrashBtn(mem.id, ph.id, `Eliminar foto ${pIdx + 1} de ${mem.planTitle}`)}
                 </div>
               `).join("");
               mediaBlock = `
@@ -1468,11 +1492,44 @@
         document.getElementById("dialog-add-photos").showModal();
       }
 
+      let lightboxState = null;
+
+      function confirmDeleteMemoryPhoto(mem, photoId) {
+        if (!mem || !photoId) return;
+        openConfirmDialog({
+          eyebrow: "Eliminar foto",
+          title: `¿Eliminar esta foto de “${mem.planTitle}”?`,
+          description: "Se quitará del recuerdo y también se borrará del almacenamiento multimedia.",
+          confirmLabel: "Sí, eliminar foto",
+          onConfirm: async () => {
+            const fd = new FormData();
+            fd.append("memoryId", mem.id);
+            fd.append("photoId", photoId);
+            const res = await fetch("/api/memories/delete-photo/", {
+              method: "POST",
+              headers: { "X-CSRFToken": getCsrfToken() },
+              body: fd
+            });
+            const data = await res.json();
+            if (data.success) {
+              state.plans = data.plans;
+              state.memories = data.memories;
+              render();
+              showFeedback(data.message, true);
+            } else {
+              showFeedback(data.message || "No pudimos eliminar la foto.", false);
+            }
+          }
+        });
+      }
+
       function openLightbox(memory, initialIdx = 0) {
         const photos = (memory.photos && memory.photos.length) ? memory.photos : (memory.photo && memory.photo.url ? [memory.photo] : []);
         if (!photos.length) return;
+        const safeIdx = Math.max(0, Math.min(photos.length - 1, initialIdx));
+        lightboxState = { memory, photos, index: safeIdx };
         document.getElementById("lightbox-title").textContent = memory.planTitle;
-        document.getElementById("lightbox-counter").textContent = `${initialIdx + 1} / ${photos.length}`;
+        document.getElementById("lightbox-counter").textContent = `${safeIdx + 1} / ${photos.length}`;
         const body = document.getElementById("lightbox-body");
         if (photos.length === 1) {
           body.innerHTML = `<img src="${escapeHtml(photos[0].url)}" alt="${escapeHtml(photos[0].alt || memory.planTitle)}" class="mx-auto max-h-[75dvh] w-full object-contain" />`;
@@ -1500,13 +1557,14 @@
           initCarousels(body);
           const track = body.querySelector(".carousel-track");
           requestAnimationFrame(() => {
-            if (track && initialIdx > 0) {
-              track.scrollLeft = track.clientWidth * initialIdx;
+            if (track && safeIdx > 0) {
+              track.scrollLeft = track.clientWidth * safeIdx;
             }
           });
           track?.addEventListener("scroll", () => {
-            const idx = Math.round(track.scrollLeft / (track.clientWidth || 1));
-            document.getElementById("lightbox-counter").textContent = `${Math.min(photos.length, idx + 1)} / ${photos.length}`;
+            const idx = Math.max(0, Math.min(photos.length - 1, Math.round(track.scrollLeft / (track.clientWidth || 1))));
+            if (lightboxState) lightboxState.index = idx;
+            document.getElementById("lightbox-counter").textContent = `${idx + 1} / ${photos.length}`;
           });
         }
         document.getElementById("dialog-photo-lightbox").showModal();
@@ -1696,48 +1754,60 @@
         if (plan) openCreateMemoryDialog(plan);
       });
 
-      // Memories album delegation: Lightbox, + Fotos, Borrar recuerdo
+      document.getElementById("lightbox-delete-photo-btn").addEventListener("click", async () => {
+        if (!lightboxState) return;
+        const { memory, photos, index } = lightboxState;
+        const targetPhoto = photos[index];
+        if (!targetPhoto) return;
+        await closeDialog(document.getElementById("dialog-photo-lightbox"));
+        confirmDeleteMemoryPhoto(memory, targetPhoto.id);
+      });
+
+      // Memories album delegation: Lightbox, + Fotos, Eliminar foto, Borrar recuerdo
       document.getElementById("memories-album-container").addEventListener("click", (e) => {
+        const actionBtn = e.target.closest("button[data-mem-action]");
+        if (actionBtn) {
+          const memId = actionBtn.getAttribute("data-memory-id");
+          const mem = state.memories.find((m) => m.id === memId);
+          if (!mem) return;
+          const act = actionBtn.getAttribute("data-mem-action");
+          if (act === "add-photos") {
+            openAddPhotosDialog(mem);
+          } else if (act === "delete-photo") {
+            confirmDeleteMemoryPhoto(mem, actionBtn.getAttribute("data-photo-id"));
+          } else if (act === "delete") {
+            openConfirmDialog({
+              eyebrow: "Borrar recuerdo",
+              title: `¿Borrar “${mem.planTitle}”?`,
+              description: "Se eliminarán este recuerdo y todas sus fotos guardadas para liberar espacio.",
+              confirmLabel: "Sí, borrar recuerdo",
+              onConfirm: async () => {
+                const fd = new FormData();
+                fd.append("id", mem.id);
+                const res = await fetch("/api/memories/delete/", {
+                  method: "POST",
+                  headers: { "X-CSRFToken": getCsrfToken() },
+                  body: fd
+                });
+                const data = await res.json();
+                if (data.success) {
+                  state.plans = data.plans;
+                  state.memories = data.memories;
+                  render();
+                  showFeedback(data.message, true);
+                } else {
+                  showFeedback(data.message || "No pudimos borrar el recuerdo.", false);
+                }
+              }
+            });
+          }
+          return;
+        }
         const lbTrigger = e.target.closest("[data-open-lightbox]");
         if (lbTrigger) {
           const mem = state.memories.find((m) => m.id === lbTrigger.getAttribute("data-open-lightbox"));
           const idx = Number(lbTrigger.getAttribute("data-slide-index") || 0);
           if (mem) openLightbox(mem, idx);
-          return;
-        }
-        const actionBtn = e.target.closest("button[data-mem-action]");
-        if (!actionBtn) return;
-        const memId = actionBtn.getAttribute("data-memory-id");
-        const mem = state.memories.find((m) => m.id === memId);
-        if (!mem) return;
-        const act = actionBtn.getAttribute("data-mem-action");
-        if (act === "add-photos") {
-          openAddPhotosDialog(mem);
-        } else if (act === "delete") {
-          openConfirmDialog({
-            eyebrow: "Borrar recuerdo",
-            title: `¿Borrar “${mem.planTitle}”?`,
-            description: "Se eliminarán este recuerdo y todas sus fotos guardadas para liberar espacio.",
-            confirmLabel: "Sí, borrar recuerdo",
-            onConfirm: async () => {
-              const fd = new FormData();
-              fd.append("id", mem.id);
-              const res = await fetch("/api/memories/delete/", {
-                method: "POST",
-                headers: { "X-CSRFToken": getCsrfToken() },
-                body: fd
-              });
-              const data = await res.json();
-              if (data.success) {
-                state.plans = data.plans;
-                state.memories = data.memories;
-                render();
-                showFeedback(data.message, true);
-              } else {
-                showFeedback(data.message || "No pudimos borrar el recuerdo.", false);
-              }
-            }
-          });
         }
       });
 

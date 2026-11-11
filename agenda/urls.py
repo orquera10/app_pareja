@@ -15,6 +15,7 @@ urlpatterns = [
     path("api/plans/cancel/", views.api_cancel_plan, name="api_cancel_plan"),
     path("api/memories/create/", views.api_create_memory, name="api_create_memory"),
     path("api/memories/add-photos/", views.api_add_memory_photos, name="api_add_memory_photos"),
+    path("api/memories/delete-photo/", views.api_delete_memory_photo, name="api_delete_memory_photo"),
     path("api/memories/delete/", views.api_delete_memory, name="api_delete_memory"),
     path("manifest.webmanifest", views.manifest_view, name="manifest"),
     path("sw.js", views.service_worker_view, name="service_worker"),

@@ -809,3 +809,49 @@ input[type="radio"]:focus-visible + .choice-card-label {
 .icon-soft-btn:hover {
   background: #e9e0d7;
 }
+
+.photo-trash-btn {
+  position: absolute;
+  top: 0.65rem;
+  left: 0.65rem;
+  z-index: 4;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(41, 29, 24, 0.72);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color 0.15s, transform 0.15s;
+}
+
+.photo-trash-btn:hover {
+  background: #a74734;
+  transform: scale(1.06);
+}
+
+.photo-trash-btn:active {
+  transform: scale(0.95);
+}
+
+.lightbox-trash-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  border: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.15s, transform 0.15s;
+}
+
+.lightbox-trash-btn:hover {
+  background: #b94735;
+}

@@ -1,4 +1,5 @@
 import json
+import uuid
 from datetime import datetime
 from functools import wraps
 from django.conf import settings
@@ -612,6 +613,55 @@ def api_add_memory_photos(request):
         {
             "success": True,
             "message": f"Sumamos {added} foto{'s' if added != 1 else ''} a “{memory.plan_title}”.",
+            "memory": memory.to_dict(),
+            **_serialize_state(request.user),
+        }
+    )
+
+
+@api_login_required
+@require_POST
+def api_delete_memory_photo(request):
+    photo_id = (request.POST.get("photoId") or request.POST.get("id") or "").strip()
+    memory_id = (request.POST.get("memoryId") or "").strip()
+    if not photo_id:
+        return JsonResponse(
+            {"success": False, "message": "Falta identificar la foto a eliminar."},
+            status=400,
+        )
+
+    if photo_id.startswith("legacy-"):
+        target_mem_id = photo_id[len("legacy-") :]
+        if memory_id and memory_id != target_mem_id:
+            return JsonResponse({"success": False, "message": "Foto no encontrada."}, status=404)
+        try:
+            uuid.UUID(target_mem_id)
+        except ValueError:
+            return JsonResponse({"success": False, "message": "Identificador de recuerdo inválido."}, status=400)
+        memory = get_object_or_404(Memory, id=target_mem_id)
+        if memory.photo:
+            memory.photo.delete(save=False)
+        memory.photo_static_url = ""
+        memory.save(update_fields=["photo", "photo_static_url"])
+    else:
+        try:
+            parsed_photo_uuid = uuid.UUID(photo_id)
+        except ValueError:
+            return JsonResponse({"success": False, "message": "Identificador de foto inválido."}, status=400)
+        mp = get_object_or_404(MemoryPhoto, id=parsed_photo_uuid)
+        if memory_id and str(mp.memory_id) != memory_id:
+            return JsonResponse({"success": False, "message": "Foto no encontrada."}, status=404)
+        memory = mp.memory
+        if mp.remote_key:
+            delete_from_media_storage(mp.remote_key)
+        if mp.image:
+            mp.image.delete(save=False)
+        mp.delete()
+
+    return JsonResponse(
+        {
+            "success": True,
+            "message": f"Eliminamos la foto de “{memory.plan_title}”.",
             "memory": memory.to_dict(),
             **_serialize_state(request.user),
         }

@@ -1,4 +1,5 @@
 from datetime import date
+from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
@@ -244,6 +245,24 @@ class NosotrosAgendaTests(TestCase):
         )
         self.assertEqual(res_add.status_code, 200)
         self.assertEqual(len(res_add.json()["memory"]["photos"]), 3)
+
+        # Delete a single photo cleanly (including remote_key cleanup on storage server)
+        second_photo_id = res_add.json()["memory"]["photos"][1]["id"]
+        from .models import MemoryPhoto
+        mp_target = MemoryPhoto.objects.get(id=second_photo_id)
+        mp_target.remote_key = "nosotros/2026-11/sample-delete.webp"
+        mp_target.save(update_fields=["remote_key"])
+
+        with patch("agenda.views.delete_from_media_storage", return_value=True) as mock_remote_del:
+            res_del_photo = self.client.post(
+                reverse("api_delete_memory_photo"),
+                {"memoryId": mem_json["memory"]["id"], "photoId": second_photo_id},
+            )
+        self.assertEqual(res_del_photo.status_code, 200)
+        self.assertTrue(res_del_photo.json()["success"])
+        mock_remote_del.assert_called_once_with("nosotros/2026-11/sample-delete.webp")
+        self.assertEqual(len(res_del_photo.json()["memory"]["photos"]), 2)
+        self.assertEqual(Memory.objects.count(), 4)
 
         # Delete memory cleanly
         res_del_mem = self.client.post(
