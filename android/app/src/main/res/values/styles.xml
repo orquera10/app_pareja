@@ -1,0 +1,8 @@
+<resources>
+    <style name="Theme.Nosotros" parent="Theme.Material3.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/bg_cream</item>
+        <item name="android:navigationBarColor">@color/card_bg</item>
+        <item name="android:windowBackground">@color/bg_cream</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>

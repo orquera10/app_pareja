@@ -1,0 +1,896 @@
+{% load static %}<!DOCTYPE html>
+<html lang="es-AR" class="HoXi4W_variable rG64oW_variable">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f7f3ee" />
+  <title>Nosotros — Agenda para parejas</title>
+  <meta name="description" content="Una agenda minimalista para planear citas, reprogramar sin fricción y guardar recuerdos juntos." />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Nosotros" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png" />
+  <link rel="stylesheet" href="{% static 'css/nosotros.css' %}" />
+</head>
+<body class="antialiased">
+  <main class="min-h-dvh bg-[#f7f3ee] text-[#332621]">
+    <!-- Top Header -->
+    <header class="app-top-bar sticky top-0 z-30 border-b border-[#e7ded6]/80 bg-[#f7f3ee]/94 backdrop-blur-xl">
+      <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:h-20 sm:px-8">
+        <button id="brand-home-btn" class="flex min-h-12 items-center gap-2.5 rounded-2xl px-1 text-left active:bg-[#eee7df] sm:gap-3" type="button">
+          <span class="grid h-9 w-9 place-items-center rounded-full bg-[#b96550] text-white shadow-sm sm:h-10 sm:w-10">
+            <svg aria-hidden="true" class="h-4 w-4 fill-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"></path>
+            </svg>
+          </span>
+          <span>
+            <span class="block text-[10px] font-bold uppercase tracking-[0.15em] text-[#9c887e] sm:hidden">Nuestra agenda</span>
+            <span class="block font-serif text-xl leading-none tracking-[-0.02em] sm:text-2xl">Nosotros</span>
+          </span>
+        </button>
+
+        <nav class="hidden items-center gap-1 rounded-full bg-[#eee7df] p-1 sm:flex" aria-label="Secciones">
+          <button id="desktop-tab-agenda" class="rounded-full px-5 py-2 text-sm font-semibold transition bg-white text-[#332621] shadow-sm" type="button">Agenda</button>
+          <button id="desktop-tab-memories" class="rounded-full px-5 py-2 text-sm font-semibold transition text-[#776861]" type="button">Recuerdos</button>
+        </nav>
+
+        <div class="flex items-center gap-2">
+          <a id="apk-download-btn" href="/descargar-apk/" class="hidden min-h-11 items-center gap-1.5 rounded-full border border-[#d8ccc2] bg-[#fffdf9] px-3.5 py-2 text-xs font-bold text-[#6f5c53] transition hover:bg-white sm:inline-flex" title="Descargar App Android (.apk)">
+            <svg aria-hidden="true" class="h-4 w-4 text-[#b96550]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"></path>
+            </svg>
+            <span>App Android</span>
+          </a>
+          <button id="top-new-plan-btn" class="flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-full bg-[#332621] px-3 text-sm font-bold text-white transition active:scale-95 sm:px-4 sm:hover:-translate-y-0.5 sm:hover:bg-[#493630]" type="button" aria-label="Crear un nuevo plan">
+            <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 5v14M5 12h14"></path>
+            </svg>
+            <span class="hidden sm:inline">Nuevo plan</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="app-content mx-auto max-w-7xl px-4 pt-7 sm:px-8 sm:pb-16 sm:pt-14">
+      <!-- Feedback Toast Banner -->
+      <div id="feedback-banner" class="hidden mb-6 rounded-2xl px-4 py-3 text-sm font-semibold" role="status" aria-live="polite"></div>
+
+      <!-- VIEW 1: AGENDA -->
+      <div id="view-agenda">
+        <section class="grid gap-5 sm:gap-8 lg:grid-cols-[1fr_19rem] lg:items-end">
+          <div>
+            <p class="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-[#b05f4b]">
+              <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m12 3 1.3 4.2L17 9l-3.7 1.8L12 15l-1.3-4.2L7 9l3.7-1.8L12 3Z"></path>
+                <path d="m5 15 .7 2.3L8 18l-2.3.7L5 21l-.7-2.3L2 18l2.3-.7L5 15Z"></path>
+              </svg>
+              Nuestra agenda compartida
+            </p>
+            <h1 class="max-w-3xl font-serif text-[2.8rem] leading-[0.98] tracking-[-0.045em] text-[#30231f] sm:text-7xl">
+              Más planes, <span class="italic text-[#b96550]">más historias.</span>
+            </h1>
+          </div>
+          <p class="max-w-md text-base leading-7 text-[#766760]">
+            Un espacio simple para organizar lo que viene y guardar todo eso que no queremos olvidar.
+          </p>
+        </section>
+
+        <!-- 7-Day Strip Card -->
+        <section class="mt-9 overflow-hidden rounded-[1.75rem] border border-[#e6dcd3] bg-[#fffdf9] p-3.5 shadow-[0_10px_35px_rgba(67,45,37,0.06)] sm:mt-12 sm:rounded-[2rem] sm:p-6">
+          <div class="mb-5 flex items-center justify-between px-1">
+            <h2 id="strip-month-label" class="font-serif text-2xl capitalize">noviembre de 2026</h2>
+            <div class="flex items-center gap-2 text-sm font-semibold text-[#8a776e]">
+              <span class="h-2 w-2 rounded-full bg-[#b96550]"></span>
+              <span id="strip-upcoming-count">0 próximos</span>
+            </div>
+          </div>
+          <div id="strip-days-grid" class="grid grid-cols-7 gap-2"></div>
+        </section>
+
+        <!-- Upcoming Plans Section -->
+        <section class="mt-11 sm:mt-14">
+          <div class="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-[#9c887e]">Lo que viene</p>
+              <h2 class="font-serif text-3xl tracking-tight sm:text-4xl">Próximos planes</h2>
+            </div>
+            <button id="inline-add-plan-btn" class="text-sm font-bold text-[#a65340] hover:underline" type="button">Agregar otro</button>
+          </div>
+          <div id="upcoming-plans-container"></div>
+        </section>
+
+        <!-- Callout Banner -->
+        <section class="mt-14 rounded-[1.75rem] bg-[#b96550] p-6 text-[#fff8f4] sm:mt-16 sm:rounded-[2rem] sm:p-10">
+          <div class="grid gap-8 md:grid-cols-[1fr_auto] md:items-center">
+            <div>
+              <p class="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-[#f2c8bb]">Momentos vividos</p>
+              <h2 class="font-serif text-4xl tracking-tight">Lo mejor del plan es recordarlo.</h2>
+              <p class="mt-3 max-w-xl text-sm leading-6 text-[#f7ded6]">
+                Agregá una foto y una pequeña nota a cualquiera de los planes que ya hicieron.
+              </p>
+            </div>
+            <button id="banner-view-memories-btn" class="flex items-center justify-center gap-2 rounded-full bg-[#fff8f4] px-5 py-3 text-sm font-bold text-[#8e4637]" type="button">
+              Ver recuerdos
+              <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14M14 7l5 5-5 5"></path>
+              </svg>
+            </button>
+          </div>
+        </section>
+
+        <!-- Mobile Android APK Banner (hidden inside WebView) -->
+        <section id="mobile-apk-banner" class="mt-6 rounded-[1.75rem] border border-[#e5dbd1] bg-[#f1ebe5] p-5 sm:hidden">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-[#b05f4b]">App para Android</p>
+              <p class="mt-0.5 font-serif text-xl text-[#332621]">Lleven Nosotros en su celular</p>
+            </div>
+            <a href="/descargar-apk/" class="shrink-0 rounded-full bg-[#332621] px-4 py-2.5 text-xs font-bold text-white shadow-sm">
+              Descargar APK
+            </a>
+          </div>
+        </section>
+      </div>
+
+      <!-- VIEW 2: RECUERDOS -->
+      <section id="view-memories" class="hidden">
+        <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p class="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-[#b05f4b]">
+              <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                <circle cx="9" cy="10" r="2"></circle>
+                <path d="m21 15-5-5L5 20"></path>
+              </svg>
+              Nuestro álbum
+            </p>
+            <h1 class="font-serif text-[2.8rem] tracking-[-0.04em] sm:text-7xl">
+              Recuerdos <span class="italic text-[#b96550]">juntos.</span>
+            </h1>
+          </div>
+          <p id="memories-count-subtitle" class="max-w-sm text-sm leading-6 text-[#766760]">
+            0 momentos guardados para volver a ellos cuando quieran.
+          </p>
+        </div>
+
+        <div id="memories-album-container"></div>
+
+        <div id="completed-plans-picker-box" class="mt-10 rounded-[2rem] bg-[#e9e0d7] p-6 sm:flex sm:items-center sm:justify-between">
+          <div>
+            <h2 class="font-serif text-2xl">¿Falta algún momento?</h2>
+            <p class="mt-1 text-sm text-[#796960]">Elegí un plan realizado y sumalo al álbum.</p>
+          </div>
+          <select id="completed-plan-select" aria-label="Elegir un plan realizado" class="mt-4 w-full rounded-full border-0 bg-[#fffdf9] px-5 py-3 text-sm font-semibold outline-none sm:mt-0 sm:w-64">
+            <option value="" disabled selected>Elegir un plan</option>
+          </select>
+        </div>
+      </section>
+    </div>
+
+    <!-- Bottom Mobile Navigation (Android-style) -->
+    <nav class="android-nav fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 items-start border-t border-[#ded3ca] bg-[#fffdf9]/95 px-3 pt-2 shadow-[0_-8px_30px_rgba(52,35,29,0.08)] backdrop-blur-xl sm:hidden" aria-label="Navegación principal">
+      <button id="mobile-tab-agenda" class="flex min-h-14 flex-col items-center gap-1 px-2 py-1 text-[10px] font-bold text-[#8e4637]" type="button">
+        <span id="mobile-pill-agenda" class="grid h-8 w-16 place-items-center rounded-full bg-[#f2ddd6]">
+          <svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 3v3M17 3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v14H4V6a1 1 0 0 1 1-1Z"></path>
+            <path d="M8 13h2M14 13h2M8 17h2M14 17h2"></path>
+          </svg>
+        </span>
+        Agenda
+      </button>
+
+      <button id="mobile-new-plan-btn" class="flex min-h-14 flex-col items-center gap-1 px-2 py-1 text-[10px] font-bold text-[#5e4e47]" type="button" aria-label="Nuevo plan">
+        <span class="grid h-8 w-16 place-items-center rounded-full bg-[#332621] text-white shadow-md">
+          <svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12h14"></path>
+          </svg>
+        </span>
+        Nuevo
+      </button>
+
+      <button id="mobile-tab-memories" class="flex min-h-14 flex-col items-center gap-1 px-2 py-1 text-[10px] font-bold text-[#8a7a72]" type="button">
+        <span id="mobile-pill-memories" class="grid h-8 w-16 place-items-center rounded-full">
+          <svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"></path>
+          </svg>
+        </span>
+        Recuerdos
+      </button>
+    </nav>
+
+    <!-- MODAL 1: NUEVO PLAN (Native <dialog closedby="any">) -->
+    <dialog id="dialog-create-plan" class="nosotros-dialog" closedby="any" aria-labelledby="dialog-create-plan-title">
+      <div class="bottom-sheet max-h-[94dvh] w-full overflow-y-auto rounded-t-[1.75rem] bg-[#fffdf9] px-5 pb-6 pt-3 shadow-2xl sm:max-w-xl sm:rounded-[2rem] sm:p-8">
+        <div class="mx-auto mb-4 h-1 w-10 rounded-full bg-[#d7cbc2] sm:hidden"></div>
+        <div class="mb-7 flex items-start justify-between gap-6">
+          <div>
+            <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-[#b05f4b]">Un plan nuevo</p>
+            <h2 id="dialog-create-plan-title" class="font-serif text-3xl text-[#30231f]">¿Qué hacemos juntos?</h2>
+          </div>
+          <button data-close-dialog="dialog-create-plan" class="grid h-10 w-10 place-items-center rounded-full bg-[#f3eee8] text-[#6f625c] transition hover:bg-[#e9dfd7]" type="button" aria-label="Cerrar">
+            <svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m6 6 12 12M18 6 6 18"></path>
+            </svg>
+          </button>
+        </div>
+
+        <form id="form-create-plan" class="space-y-5">
+          <label class="block">
+            <span class="mb-2 block text-sm font-semibold text-[#4b3b35]">Nombre del plan</span>
+            <input class="form-control" name="title" placeholder="Ej. Picnic al atardecer" required maxlength="80" />
+            <span data-field-error="title" class="hidden mt-1.5 block text-xs font-medium text-[#a74734]"></span>
+          </label>
+
+          <div class="grid gap-5 sm:grid-cols-2">
+            <label class="block">
+              <span class="mb-2 block text-sm font-semibold text-[#4b3b35]">Fecha y hora</span>
+              <input class="form-control" type="datetime-local" name="date" required />
+              <span data-field-error="date" class="hidden mt-1.5 block text-xs font-medium text-[#a74734]"></span>
+            </label>
+            <label class="block">
+              <span class="mb-2 block text-sm font-semibold text-[#4b3b35]">Tipo de plan</span>
+              <select class="form-control" name="category">
+                <option value="date" selected>Cita</option>
+                <option value="food">Comida</option>
+                <option value="trip">Viaje</option>
+                <option value="culture">Cultura</option>
+                <option value="home">En casa</option>
+                <option value="other">Otro</option>
+              </select>
+              <span data-field-error="category" class="hidden mt-1.5 block text-xs font-medium text-[#a74734]"></span>
+            </label>
+          </div>
+
+          <label class="block">
+            <span class="mb-2 block text-sm font-semibold text-[#4b3b35]">Lugar</span>
+            <input class="form-control" name="location" placeholder="¿Dónde nos encontramos?" maxlength="120" />
+            <span data-field-error="location" class="hidden mt-1.5 block text-xs font-medium text-[#a74734]"></span>
+          </label>
+
+          <label class="block">
+            <span class="mb-2 block text-sm font-semibold text-[#4b3b35]">Detalles</span>
+            <textarea class="form-control min-h-24 resize-none" name="description" placeholder="Entradas, ideas o algo que no quieran olvidar..." maxlength="500"></textarea>
+            <span data-field-error="description" class="hidden mt-1.5 block text-xs font-medium text-[#a74734]"></span>
+          </label>
+
+          <p id="create-plan-form-error" class="hidden text-sm font-semibold text-[#9d4939]"></p>
+
+          <button id="submit-create-plan" class="primary-button" type="submit">
+            <span data-btn-label>Agregar a nuestra agenda</span>
+            <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M14 7l5 5-5 5"></path>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </dialog>
+
+    <!-- MODAL 2: REPROGRAMAR PLAN (Native <dialog closedby="any">) -->
+    <dialog id="dialog-reschedule-plan" class="nosotros-dialog" closedby="any" aria-labelledby="dialog-reschedule-title">
+      <div class="bottom-sheet max-h-[94dvh] w-full overflow-y-auto rounded-t-[1.75rem] bg-[#fffdf9] px-5 pb-6 pt-3 shadow-2xl sm:max-w-xl sm:rounded-[2rem] sm:p-8">
+        <div class="mx-auto mb-4 h-1 w-10 rounded-full bg-[#d7cbc2] sm:hidden"></div>
+        <div class="mb-7 flex items-start justify-between gap-6">
+          <div>
+            <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-[#b05f4b]">Cambio de planes</p>
+            <h2 id="dialog-reschedule-title" class="font-serif text-3xl text-[#30231f]">Reprogramar</h2>
+          </div>
+          <button data-close-dialog="dialog-reschedule-plan" class="grid h-10 w-10 place-items-center rounded-full bg-[#f3eee8] text-[#6f625c] transition hover:bg-[#e9dfd7]" type="button" aria-label="Cerrar">
+            <svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m6 6 12 12M18 6 6 18"></path>
+            </svg>
+          </button>
+        </div>
+
+        <form id="form-reschedule-plan" class="space-y-5">
+          <input type="hidden" name="id" id="reschedule-plan-id" />
+          <p id="reschedule-current-info" class="rounded-2xl bg-[#f2ece6] p-4 text-sm leading-6 text-[#74635b]"></p>
+
+          <label class="block">
+            <span class="mb-2 block text-sm font-semibold text-[#4b3b35]">Nueva fecha y hora</span>
+            <input class="form-control" type="datetime-local" name="date" id="reschedule-date-input" required />
+            <span data-field-error="date" class="hidden mt-1.5 block text-xs font-medium text-[#a74734]"></span>
+          </label>
+
+          <p id="reschedule-form-error" class="hidden text-sm font-semibold text-[#9d4939]"></p>
+
+          <button id="submit-reschedule-plan" class="primary-button" type="submit">
+            <span data-btn-label>Confirmar nueva fecha</span>
+            <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 3v3M17 3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v14H4V6a1 1 0 0 1 1-1Z"></path>
+              <path d="M8 13h2M14 13h2M8 17h2M14 17h2"></path>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </dialog>
+
+    <!-- MODAL 3: GUARDAR RECUERDO (Native <dialog closedby="any">) -->
+    <dialog id="dialog-create-memory" class="nosotros-dialog" closedby="any" aria-labelledby="dialog-memory-title">
+      <div class="bottom-sheet max-h-[94dvh] w-full overflow-y-auto rounded-t-[1.75rem] bg-[#fffdf9] px-5 pb-6 pt-3 shadow-2xl sm:max-w-xl sm:rounded-[2rem] sm:p-8">
+        <div class="mx-auto mb-4 h-1 w-10 rounded-full bg-[#d7cbc2] sm:hidden"></div>
+        <div class="mb-7 flex items-start justify-between gap-6">
+          <div>
+            <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-[#b05f4b]">Guardar el momento</p>
+            <h2 id="dialog-memory-title" class="font-serif text-3xl text-[#30231f]">Recuerdo</h2>
+          </div>
+          <button data-close-dialog="dialog-create-memory" class="grid h-10 w-10 place-items-center rounded-full bg-[#f3eee8] text-[#6f625c] transition hover:bg-[#e9dfd7]" type="button" aria-label="Cerrar">
+            <svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m6 6 12 12M18 6 6 18"></path>
+            </svg>
+          </button>
+        </div>
+
+        <form id="form-create-memory" class="space-y-5" enctype="multipart/form-data">
+          <input type="hidden" name="plan" id="memory-plan-id" />
+
+          <label class="block">
+            <span class="mb-2 block text-sm font-semibold text-[#4b3b35]">Fecha del recuerdo</span>
+            <input class="form-control" type="date" name="happenedAt" id="memory-date-input" required />
+            <span data-field-error="happenedAt" class="hidden mt-1.5 block text-xs font-medium text-[#a74734]"></span>
+          </label>
+
+          <label class="block">
+            <span class="mb-2 block text-sm font-semibold text-[#4b3b35]">¿Qué quieren recordar?</span>
+            <textarea class="form-control min-h-28 resize-none" name="note" placeholder="Una frase, una anécdota, cómo se sintieron..." maxlength="500" required></textarea>
+            <span data-field-error="note" class="hidden mt-1.5 block text-xs font-medium text-[#a74734]"></span>
+          </label>
+
+          <label class="block">
+            <span class="mb-2 block text-sm font-semibold text-[#4b3b35]">Foto (opcional, hasta 8 MB)</span>
+            <div class="rounded-2xl border border-dashed border-[#cdbdb2] bg-[#f6f1ec] p-5 text-center">
+              <svg aria-hidden="true" class="mx-auto mb-2 h-7 w-7 text-[#b96550]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                <circle cx="9" cy="10" r="2"></circle>
+                <path d="m21 15-5-5L5 20"></path>
+              </svg>
+              <input class="block w-full text-xs text-[#74635b] file:mr-3 file:rounded-full file:border-0 file:bg-[#332621] file:px-4 file:py-2 file:font-bold file:text-white" type="file" name="photo" accept="image/*" />
+            </div>
+            <span data-field-error="photo" class="hidden mt-1.5 block text-xs font-medium text-[#a74734]"></span>
+          </label>
+
+          <p id="memory-form-error" class="hidden text-sm font-semibold text-[#9d4939]"></p>
+
+          <button id="submit-create-memory" class="primary-button" type="submit">
+            <span data-btn-label>Guardar recuerdo</span>
+            <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"></path>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </dialog>
+  </main>
+
+  <script id="initial-state-data" type="application/json">{{ initial_state_json|safe }}</script>
+  <script>
+    (() => {
+      const CATEGORY_META = {
+        date: { label: "Cita", color: "bg-[#f5d3ca] text-[#8c4436]" },
+        food: { label: "Comida", color: "bg-[#f5dfb4] text-[#815d22]" },
+        trip: { label: "Viaje", color: "bg-[#cbded2] text-[#3e6650]" },
+        culture: { label: "Cultura", color: "bg-[#d9d1eb] text-[#625281]" },
+        home: { label: "En casa", color: "bg-[#d6e2ef] text-[#46647f]" },
+        other: { label: "Otro", color: "bg-[#e6ddd3] text-[#6a5a4c]" }
+      };
+
+      const dateFmtLong = new Intl.DateTimeFormat("es-AR", { day: "numeric", month: "long", timeZone: "UTC" });
+      const timeFmt = new Intl.DateTimeFormat("es-AR", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "UTC" });
+      const monthYearFmt = new Intl.DateTimeFormat("es-AR", { month: "long", year: "numeric", timeZone: "UTC" });
+      const weekdayShortFmt = new Intl.DateTimeFormat("es-AR", { weekday: "short", timeZone: "UTC" });
+      const monthShortFmt = new Intl.DateTimeFormat("es-AR", { month: "short", timeZone: "UTC" });
+
+      const initialDataEl = document.getElementById("initial-state-data");
+      let state = initialDataEl ? JSON.parse(initialDataEl.textContent) : { plans: [], memories: [] };
+      let activeTab = "agenda";
+
+      // Hide APK download banners if running inside the Android native wrapper WebView
+      if (navigator.userAgent.includes("NosotrosAndroidApp")) {
+        const apkBtn = document.getElementById("apk-download-btn");
+        const mobileApkBanner = document.getElementById("mobile-apk-banner");
+        if (apkBtn) apkBtn.style.display = "none";
+        if (mobileApkBanner) mobileApkBanner.style.display = "none";
+      }
+
+      function getCsrfToken() {
+        const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+        return match ? decodeURIComponent(match[1]) : "";
+      }
+
+      function escapeHtml(str) {
+        const div = document.createElement("div");
+        div.textContent = str ?? "";
+        return div.innerHTML;
+      }
+
+      function showFeedback(message, isSuccess = true) {
+        const banner = document.getElementById("feedback-banner");
+        if (!banner) return;
+        if (!message) {
+          banner.className = "hidden mb-6 rounded-2xl px-4 py-3 text-sm font-semibold";
+          banner.textContent = "";
+          return;
+        }
+        banner.textContent = message;
+        banner.className = `mb-6 rounded-2xl px-4 py-3 text-sm font-semibold ${
+          isSuccess ? "bg-[#dbe9df] text-[#315c40]" : "bg-[#f1d8d1] text-[#8d3f30]"
+        }`;
+      }
+
+      function setTab(tab) {
+        activeTab = tab;
+        const viewAgenda = document.getElementById("view-agenda");
+        const viewMemories = document.getElementById("view-memories");
+        const dAgenda = document.getElementById("desktop-tab-agenda");
+        const dMemories = document.getElementById("desktop-tab-memories");
+        const mAgenda = document.getElementById("mobile-tab-agenda");
+        const mMemories = document.getElementById("mobile-tab-memories");
+        const mPillAgenda = document.getElementById("mobile-pill-agenda");
+        const mPillMemories = document.getElementById("mobile-pill-memories");
+
+        if (tab === "agenda") {
+          viewAgenda.classList.remove("hidden");
+          viewMemories.classList.add("hidden");
+          dAgenda.className = "rounded-full px-5 py-2 text-sm font-semibold transition bg-white text-[#332621] shadow-sm";
+          dMemories.className = "rounded-full px-5 py-2 text-sm font-semibold transition text-[#776861]";
+          mAgenda.className = "flex min-h-14 flex-col items-center gap-1 px-2 py-1 text-[10px] font-bold text-[#8e4637]";
+          mMemories.className = "flex min-h-14 flex-col items-center gap-1 px-2 py-1 text-[10px] font-bold text-[#8a7a72]";
+          mPillAgenda.className = "grid h-8 w-16 place-items-center rounded-full bg-[#f2ddd6]";
+          mPillMemories.className = "grid h-8 w-16 place-items-center rounded-full";
+        } else {
+          viewAgenda.classList.add("hidden");
+          viewMemories.classList.remove("hidden");
+          dAgenda.className = "rounded-full px-5 py-2 text-sm font-semibold transition text-[#776861]";
+          dMemories.className = "rounded-full px-5 py-2 text-sm font-semibold transition bg-white text-[#332621] shadow-sm";
+          mAgenda.className = "flex min-h-14 flex-col items-center gap-1 px-2 py-1 text-[10px] font-bold text-[#8a7a72]";
+          mMemories.className = "flex min-h-14 flex-col items-center gap-1 px-2 py-1 text-[10px] font-bold text-[#8e4637]";
+          mPillAgenda.className = "grid h-8 w-16 place-items-center rounded-full";
+          mPillMemories.className = "grid h-8 w-16 place-items-center rounded-full bg-[#f2ddd6]";
+        }
+      }
+
+      function utcDateKey(dateObj) {
+        return `${dateObj.getUTCFullYear()}-${String(dateObj.getUTCMonth() + 1).padStart(2, "0")}-${String(dateObj.getUTCDate()).padStart(2, "0")}`;
+      }
+
+      function render() {
+        const upcomingPlans = state.plans
+          .filter((p) => p.status !== "completed")
+          .sort((a, b) => new Date(a.date) - new Date(b.date));
+        const completedPlans = state.plans.filter((p) => p.status === "completed");
+
+        // 1. Render 7-Day Strip
+        const baseDate = upcomingPlans[0] ? new Date(upcomingPlans[0].date) : new Date();
+        document.getElementById("strip-month-label").textContent = monthYearFmt.format(baseDate);
+        document.getElementById("strip-upcoming-count").textContent = `${upcomingPlans.length} próximos`;
+
+        const stripGrid = document.getElementById("strip-days-grid");
+        const stripHtml = [];
+        for (let i = 0; i < 7; i++) {
+          const day = new Date(baseDate);
+          day.setUTCDate(baseDate.getUTCDate() + i - 2);
+          const dayKey = utcDateKey(day);
+          const hasPlan = upcomingPlans.some((p) => utcDateKey(new Date(p.date)) === dayKey);
+          const isAnchor = i === 2;
+          const weekdayLabel = weekdayShortFmt.format(day).replace(".", "");
+          stripHtml.push(`
+            <div class="relative flex min-h-20 flex-col items-center justify-center overflow-hidden rounded-2xl transition sm:min-h-28 ${
+              isAnchor ? "bg-[#332621] text-white" : "bg-[#f5f0ea] text-[#65564f]"
+            }">
+              ${
+                hasPlan
+                  ? `<span class="absolute right-2.5 top-2.5 h-1.5 w-1.5 rounded-full ring-2 ${
+                      isAnchor ? "bg-[#f2ad98] ring-[#6a4a40]" : "bg-[#b96550] ring-[#f5f0ea]"
+                    }" aria-label="Hay un plan este día"></span>`
+                  : ""
+              }
+              <span class="mb-2 text-[10px] font-bold uppercase tracking-wider opacity-70">${escapeHtml(weekdayLabel)}</span>
+              <span class="font-serif text-2xl leading-none sm:text-3xl">${day.getUTCDate()}</span>
+            </div>
+          `);
+        }
+        stripGrid.innerHTML = stripHtml.join("");
+
+        // 2. Render Upcoming Plans
+        const upcomingContainer = document.getElementById("upcoming-plans-container");
+        if (upcomingPlans.length === 0) {
+          upcomingContainer.innerHTML = `
+            <div class="rounded-[2rem] border border-dashed border-[#d8c9bf] bg-[#fffaf5] p-10 text-center">
+              <div class="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full bg-[#f2ddd6] text-[#a65340]">
+                <svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 3v3M17 3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v14H4V6a1 1 0 0 1 1-1Z"></path>
+                  <path d="M8 13h2M14 13h2M8 17h2M14 17h2"></path>
+                </svg>
+              </div>
+              <h3 class="font-serif text-2xl">La próxima historia empieza acá</h3>
+              <p class="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#7a6a62]">Sumen una cita, una escapada o ese plan que vienen postergando.</p>
+              <button data-action="open-create-plan" class="mt-6 rounded-full bg-[#332621] px-5 py-3 text-sm font-bold text-white" type="button">Crear primer plan</button>
+            </div>
+          `;
+        } else {
+          const cardsHtml = upcomingPlans.map((plan, idx) => {
+            const cat = CATEGORY_META[plan.category] || CATEGORY_META.other;
+            const d = new Date(plan.date);
+            const monthShort = monthShortFmt.format(d).replace(".", "");
+            const dayNum = d.getUTCDate();
+            const timeStr = timeFmt.format(d);
+            return `
+              <article class="group rounded-[1.75rem] border border-[#e5dbd1] p-5 transition hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(67,45,37,0.08)] sm:p-6 ${
+                idx === 0 ? "bg-[#fffdf9]" : "bg-[#f1ebe5]"
+              }">
+                <div class="flex gap-5">
+                  <div class="flex h-20 w-16 shrink-0 flex-col items-center justify-center rounded-2xl bg-[#f2ddd6] text-[#8e4637]">
+                    <span class="text-[10px] font-black uppercase tracking-widest">${escapeHtml(monthShort)}</span>
+                    <span class="font-serif text-3xl leading-none">${dayNum}</span>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="mb-3 flex flex-wrap items-center gap-2">
+                      <span class="rounded-full px-3 py-1 text-[11px] font-bold ${cat.color}">${escapeHtml(cat.label)}</span>
+                      ${
+                        plan.status === "postponed"
+                          ? `<span class="rounded-full bg-[#eee5db] px-3 py-1 text-[11px] font-bold text-[#7e6a5d]">Reprogramado</span>`
+                          : ""
+                      }
+                    </div>
+                    <h3 class="font-serif text-2xl leading-tight">${escapeHtml(plan.title)}</h3>
+                    ${
+                      plan.description
+                        ? `<p class="mt-2 line-clamp-2 text-sm leading-6 text-[#7a6a62]">${escapeHtml(plan.description)}</p>`
+                        : ""
+                    }
+                  </div>
+                </div>
+                <div class="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-[#e7ddd5] pt-4">
+                  <div class="flex flex-wrap gap-4 text-xs font-semibold text-[#7d6e66]">
+                    <span class="flex items-center gap-1.5">
+                      <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="9"></circle>
+                        <path d="M12 7v5l3 2"></path>
+                      </svg>
+                      ${escapeHtml(timeStr)}
+                    </span>
+                    ${
+                      plan.location
+                        ? `<span class="flex items-center gap-1.5">
+                            <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path>
+                              <circle cx="12" cy="10" r="2.5"></circle>
+                            </svg>
+                            ${escapeHtml(plan.location)}
+                          </span>`
+                        : ""
+                    }
+                  </div>
+                  <div class="flex gap-2">
+                    <button data-action="reschedule" data-plan-id="${escapeHtml(plan.id)}" class="min-h-11 rounded-full border border-[#d8ccc2] px-4 py-2 text-xs font-bold text-[#6f5c53] transition active:bg-white sm:hover:bg-white" type="button">
+                      Reprogramar
+                    </button>
+                    <button data-action="complete" data-plan-id="${escapeHtml(plan.id)}" class="grid h-11 w-11 place-items-center rounded-full bg-[#332621] text-white transition active:scale-95 sm:hover:bg-[#b96550]" type="button" aria-label="Marcar ${escapeHtml(plan.title)} como realizado">
+                      <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m5 12 4 4L19 6"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </article>
+            `;
+          });
+          upcomingContainer.innerHTML = `<div class="grid gap-4 lg:grid-cols-2">${cardsHtml.join("")}</div>`;
+        }
+
+        // 3. Render Memories Album
+        document.getElementById("memories-count-subtitle").textContent = `${state.memories.length} momentos guardados para volver a ellos cuando quieran.`;
+        const memoriesContainer = document.getElementById("memories-album-container");
+        if (state.memories.length === 0) {
+          memoriesContainer.innerHTML = `
+            <div class="mt-12 rounded-[2rem] border border-dashed border-[#d8c9bf] bg-[#fffaf5] p-12 text-center">
+              <svg aria-hidden="true" class="mx-auto mb-4 h-10 w-10 text-[#b96550]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                <circle cx="9" cy="10" r="2"></circle>
+                <path d="m21 15-5-5L5 20"></path>
+              </svg>
+              <h2 class="font-serif text-3xl">El álbum todavía está esperando</h2>
+              <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-[#7a6a62]">Cuando terminen un plan, guarden una foto y una frase sobre ese momento.</p>
+            </div>
+          `;
+        } else {
+          const memHtml = state.memories.map((mem, idx) => {
+            const aspectClass = idx % 3 === 1 ? "aspect-[4/5]" : "aspect-[4/3]";
+            const happenedStr = dateFmtLong.format(new Date(mem.happenedAt));
+            return `
+              <article class="mb-5 break-inside-avoid overflow-hidden rounded-[1.75rem] border border-[#e3d9cf] bg-[#fffdf9] ${
+                idx % 3 === 1 ? "pt-0" : ""
+              }">
+                ${
+                  mem.photo && mem.photo.url
+                    ? `<div class="relative w-full ${aspectClass}">
+                        <img src="${escapeHtml(mem.photo.url)}" alt="${escapeHtml(mem.photo.alt || mem.planTitle)}" loading="lazy" decoding="async" class="object-cover" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0" />
+                      </div>`
+                    : `<div class="grid aspect-[4/2] place-items-center bg-[#eee4da] text-[#b96550]">
+                        <svg aria-hidden="true" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"></path>
+                        </svg>
+                      </div>`
+                }
+                <div class="p-5">
+                  <p class="font-serif text-xl leading-snug">“${escapeHtml(mem.note)}”</p>
+                  <div class="mt-4 flex items-center justify-between gap-3 text-[11px] font-bold uppercase tracking-wider text-[#9a857b]">
+                    <span>${escapeHtml(mem.planTitle)}</span>
+                    <span>${escapeHtml(happenedStr)}</span>
+                  </div>
+                </div>
+              </article>
+            `;
+          });
+          memoriesContainer.innerHTML = `<div class="mt-9 columns-1 gap-5 sm:mt-12 sm:columns-2 lg:columns-3">${memHtml.join("")}</div>`;
+        }
+
+        // 4. Completed plans select dropdown
+        const pickerBox = document.getElementById("completed-plans-picker-box");
+        const selectEl = document.getElementById("completed-plan-select");
+        if (completedPlans.length > 0) {
+          pickerBox.classList.remove("hidden");
+          selectEl.innerHTML = `<option value="" disabled selected>Elegir un plan</option>` +
+            completedPlans.map((p) => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.title)}</option>`).join("");
+        } else {
+          pickerBox.classList.add("hidden");
+        }
+      }
+
+      // Dialog helpers using native <dialog>.showModal() and <dialog>.close()
+      function openCreatePlanDialog() {
+        showFeedback(null);
+        const form = document.getElementById("form-create-plan");
+        form.reset();
+        clearFormErrors(form, "create-plan-form-error");
+        document.getElementById("dialog-create-plan").showModal();
+      }
+
+      function openRescheduleDialog(plan) {
+        showFeedback(null);
+        const form = document.getElementById("form-reschedule-plan");
+        form.reset();
+        clearFormErrors(form, "reschedule-form-error");
+        document.getElementById("dialog-reschedule-title").textContent = `Reprogramar ${plan.title}`;
+        document.getElementById("reschedule-plan-id").value = plan.id;
+        const d = new Date(plan.date);
+        document.getElementById("reschedule-current-info").innerHTML =
+          `Estaba agendado para el <strong>${escapeHtml(dateFmtLong.format(d))}</strong> a las <strong>${escapeHtml(timeFmt.format(d))}</strong>.`;
+        document.getElementById("reschedule-date-input").value = plan.date.slice(0, 16);
+        document.getElementById("dialog-reschedule-plan").showModal();
+      }
+
+      function openCreateMemoryDialog(plan) {
+        showFeedback(null);
+        const form = document.getElementById("form-create-memory");
+        form.reset();
+        clearFormErrors(form, "memory-form-error");
+        document.getElementById("dialog-memory-title").textContent = plan.title;
+        document.getElementById("memory-plan-id").value = plan.id;
+        document.getElementById("memory-date-input").value = (plan.date || "").slice(0, 10);
+        document.getElementById("dialog-create-memory").showModal();
+      }
+
+      function clearFormErrors(form, errorBannerId) {
+        form.querySelectorAll("[data-field-error]").forEach((el) => {
+          el.textContent = "";
+          el.classList.add("hidden");
+        });
+        const banner = document.getElementById(errorBannerId);
+        if (banner) {
+          banner.textContent = "";
+          banner.classList.add("hidden");
+        }
+      }
+
+      function showFormErrors(form, errorBannerId, data) {
+        clearFormErrors(form, errorBannerId);
+        if (data.fieldErrors) {
+          Object.entries(data.fieldErrors).forEach(([field, msg]) => {
+            const el = form.querySelector(`[data-field-error="${field}"]`);
+            if (el) {
+              el.textContent = Array.isArray(msg) ? msg[0] : msg;
+              el.classList.remove("hidden");
+            }
+          });
+        }
+        if (data.message) {
+          const banner = document.getElementById(errorBannerId);
+          if (banner) {
+            banner.textContent = data.message;
+            banner.classList.remove("hidden");
+          }
+        }
+      }
+
+      // Close buttons inside dialogs
+      document.querySelectorAll("[data-close-dialog]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const dlg = document.getElementById(btn.getAttribute("data-close-dialog"));
+          if (dlg && dlg.open) dlg.close();
+        });
+      });
+
+      // Fallback backdrop click dismissal for older WebViews that don't yet support closedby="any"
+      document.querySelectorAll("dialog.nosotros-dialog").forEach((dlg) => {
+        dlg.addEventListener("click", (e) => {
+          if (e.target === dlg) dlg.close();
+        });
+      });
+
+      // Navigation bindings
+      document.getElementById("brand-home-btn").addEventListener("click", () => setTab("agenda"));
+      document.getElementById("desktop-tab-agenda").addEventListener("click", () => setTab("agenda"));
+      document.getElementById("desktop-tab-memories").addEventListener("click", () => setTab("memories"));
+      document.getElementById("mobile-tab-agenda").addEventListener("click", () => setTab("agenda"));
+      document.getElementById("mobile-tab-memories").addEventListener("click", () => setTab("memories"));
+      document.getElementById("banner-view-memories-btn").addEventListener("click", () => setTab("memories"));
+
+      document.getElementById("top-new-plan-btn").addEventListener("click", openCreatePlanDialog);
+      document.getElementById("mobile-new-plan-btn").addEventListener("click", openCreatePlanDialog);
+      document.getElementById("inline-add-plan-btn").addEventListener("click", openCreatePlanDialog);
+
+      // Event delegation for plan cards
+      document.getElementById("upcoming-plans-container").addEventListener("click", async (e) => {
+        const btn = e.target.closest("button[data-action]");
+        if (!btn) return;
+        const action = btn.getAttribute("data-action");
+        if (action === "open-create-plan") {
+          openCreatePlanDialog();
+          return;
+        }
+        const planId = btn.getAttribute("data-plan-id");
+        const plan = state.plans.find((p) => p.id === planId);
+        if (!plan) return;
+
+        if (action === "reschedule") {
+          openRescheduleDialog(plan);
+        } else if (action === "complete") {
+          btn.disabled = true;
+          try {
+            const fd = new FormData();
+            fd.append("id", plan.id);
+            const res = await fetch("/api/plans/complete/", {
+              method: "POST",
+              headers: { "X-CSRFToken": getCsrfToken() },
+              body: fd
+            });
+            const data = await res.json();
+            if (data.success) {
+              state.plans = data.plans;
+              state.memories = data.memories;
+              render();
+              showFeedback(data.message, true);
+            } else {
+              showFeedback(data.message || "No se pudo actualizar el plan.", false);
+            }
+          } catch (err) {
+            showFeedback("Error de conexión al actualizar el plan.", false);
+          } finally {
+            btn.disabled = false;
+          }
+        }
+      });
+
+      // Completed plan select in Recuerdos view
+      document.getElementById("completed-plan-select").addEventListener("change", (e) => {
+        const planId = e.target.value;
+        const plan = state.plans.find((p) => p.id === planId);
+        e.target.value = "";
+        if (plan) {
+          openCreateMemoryDialog(plan);
+        }
+      });
+
+      // Form 1: Create Plan
+      document.getElementById("form-create-plan").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const form = e.currentTarget;
+        const btn = document.getElementById("submit-create-plan");
+        const label = btn.querySelector("[data-btn-label]");
+        btn.disabled = true;
+        label.textContent = "Guardando...";
+        try {
+          const res = await fetch("/api/plans/create/", {
+            method: "POST",
+            headers: { "X-CSRFToken": getCsrfToken() },
+            body: new FormData(form)
+          });
+          const data = await res.json();
+          if (data.success) {
+            state.plans = data.plans;
+            state.memories = data.memories;
+            render();
+            document.getElementById("dialog-create-plan").close();
+            showFeedback(data.message, true);
+          } else {
+            showFormErrors(form, "create-plan-form-error", data);
+          }
+        } catch (err) {
+          showFormErrors(form, "create-plan-form-error", { message: "No pudimos guardar el plan. Intentá de nuevo." });
+        } finally {
+          btn.disabled = false;
+          label.textContent = "Agregar a nuestra agenda";
+        }
+      });
+
+      // Form 2: Reschedule Plan
+      document.getElementById("form-reschedule-plan").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const form = e.currentTarget;
+        const btn = document.getElementById("submit-reschedule-plan");
+        const label = btn.querySelector("[data-btn-label]");
+        btn.disabled = true;
+        label.textContent = "Cambiando...";
+        try {
+          const res = await fetch("/api/plans/reschedule/", {
+            method: "POST",
+            headers: { "X-CSRFToken": getCsrfToken() },
+            body: new FormData(form)
+          });
+          const data = await res.json();
+          if (data.success) {
+            state.plans = data.plans;
+            state.memories = data.memories;
+            render();
+            document.getElementById("dialog-reschedule-plan").close();
+            showFeedback(data.message, true);
+          } else {
+            showFormErrors(form, "reschedule-form-error", data);
+          }
+        } catch (err) {
+          showFormErrors(form, "reschedule-form-error", { message: "No pudimos reprogramar el plan. Intentá de nuevo." });
+        } finally {
+          btn.disabled = false;
+          label.textContent = "Confirmar nueva fecha";
+        }
+      });
+
+      // Form 3: Create Memory
+      document.getElementById("form-create-memory").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const form = e.currentTarget;
+        const btn = document.getElementById("submit-create-memory");
+        const label = btn.querySelector("[data-btn-label]");
+        btn.disabled = true;
+        label.textContent = "Guardando...";
+        try {
+          const res = await fetch("/api/memories/create/", {
+            method: "POST",
+            headers: { "X-CSRFToken": getCsrfToken() },
+            body: new FormData(form)
+          });
+          const data = await res.json();
+          if (data.success) {
+            state.plans = data.plans;
+            state.memories = data.memories;
+            render();
+            document.getElementById("dialog-create-memory").close();
+            showFeedback(data.message, true);
+          } else {
+            showFormErrors(form, "memory-form-error", data);
+          }
+        } catch (err) {
+          showFormErrors(form, "memory-form-error", { message: "No pudimos guardar el recuerdo. Intentá de nuevo." });
+        } finally {
+          btn.disabled = false;
+          label.textContent = "Guardar recuerdo";
+        }
+      });
+
+      // Register Service Worker for PWA installability
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("/sw.js").catch(() => {});
+        });
+      }
+
+      // Initial render
+      render();
+    })();
+  </script>
+</body>
+</html>

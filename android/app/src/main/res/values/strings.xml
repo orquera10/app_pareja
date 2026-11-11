@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Nosotros</string>
+    <string name="offline_msg">Sin conexión a Internet</string>
+    <string name="retry">Reintentar</string>
+</resources>
