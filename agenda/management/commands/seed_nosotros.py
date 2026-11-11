@@ -51,8 +51,21 @@ class Command(BaseCommand):
             camila_profile.partner = dario
             camila_profile.save(update_fields=["partner"])
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--users-only",
+            action="store_true",
+            help="Only ensure dario/camila users and CoupleProfile exist without creating demo plans or memories.",
+        )
+
     def handle(self, *args, **options):
         self._seed_couple_users()
+
+        if options.get("users_only"):
+            self.stdout.write(
+                self.style.SUCCESS("Nosotros couple users verified (--users-only).")
+            )
+            return
 
         if Plan.objects.exists():
             self.stdout.write(

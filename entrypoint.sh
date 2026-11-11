@@ -37,8 +37,8 @@ EOF
 echo "==> Running database migrations..."
 python manage.py migrate --noinput
 
-echo "==> Seeding initial Nosotros couple agenda data..."
-python manage.py seed_nosotros
+echo "==> Ensuring Nosotros couple users..."
+python manage.py seed_nosotros --users-only
 
 echo "==> Collecting static files..."
 python manage.py collectstatic --noinput

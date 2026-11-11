@@ -279,3 +279,18 @@ class NosotrosAgendaTests(TestCase):
         )
         self.assertEqual(res_cancel.status_code, 200)
         self.assertEqual(Plan.objects.count(), 6)
+
+    def test_clear_nosotros_data_and_users_only_seed(self):
+        self.assertGreater(Plan.objects.count(), 0)
+        self.assertGreater(Memory.objects.count(), 0)
+
+        call_command("clear_nosotros_data", keep_remote=True)
+        self.assertEqual(Plan.objects.count(), 0)
+        self.assertEqual(Memory.objects.count(), 0)
+        self.assertEqual(User.objects.filter(username__in=["dario", "camila"]).count(), 2)
+        self.assertEqual(CoupleProfile.objects.count(), 2)
+
+        # Calling seed_nosotros --users-only must keep DB empty of demo plans/memories
+        call_command("seed_nosotros", users_only=True)
+        self.assertEqual(Plan.objects.count(), 0)
+        self.assertEqual(Memory.objects.count(), 0)
