@@ -4,6 +4,8 @@ from functools import wraps
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.http import FileResponse, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -11,7 +13,8 @@ from django.utils.dateparse import parse_date, parse_datetime
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_GET, require_POST
 
-from .models import CoupleProfile, Memory, Plan
+from .models import CoupleProfile, Memory, MemoryPhoto, Plan
+from .storage_client import delete_from_media_storage, upload_to_media_storage
 
 
 def _get_or_create_profile(user) -> CoupleProfile:
@@ -46,6 +49,7 @@ def _serialize_state(user=None):
     memories = [
         m.to_dict()
         for m in Memory.objects.select_related("created_by", "created_by__couple_profile")
+        .prefetch_related("photos")
         .all()
         .order_by("-happened_at", "-created_at")
     ]
@@ -449,18 +453,92 @@ def api_complete_plan(request):
     )
 
 
+def _extract_id(request) -> str:
+    item_id = (request.POST.get("id") or "").strip()
+    if not item_id and request.body:
+        try:
+            body = json.loads(request.body.decode("utf-8"))
+            item_id = str(body.get("id", "")).strip()
+        except Exception:
+            pass
+    return item_id
+
+
+@api_login_required
+@require_POST
+def api_cancel_plan(request):
+    plan_id = _extract_id(request)
+    plan = get_object_or_404(Plan, id=plan_id)
+    title = plan.title
+    plan.delete()
+    return JsonResponse(
+        {
+            "success": True,
+            "message": f"Cancelamos “{title}” de la agenda.",
+            **_serialize_state(request.user),
+        }
+    )
+
+
+def _validate_photos(files_list) -> tuple[list, str | None]:
+    if len(files_list) > 15:
+        return [], "Podés subir hasta 15 fotos por vez."
+    for f in files_list:
+        if f.size > 12 * 1024 * 1024:
+            return [], f"La foto “{f.name}” supera el límite de 12 MB."
+    return files_list, None
+
+
+def _save_memory_photo_files(memory: Memory, files_list: list) -> int:
+    start_order = memory.photos.count()
+    saved = 0
+    for idx, f in enumerate(files_list):
+        remote = upload_to_media_storage(f)
+        if remote:
+            MemoryPhoto.objects.create(
+                memory=memory,
+                remote_url=remote["url"],
+                remote_key=remote["key"],
+                alt=memory.plan_title,
+                byte_size=int(remote.get("sizeBytes") or f.size or 0),
+                order=start_order + idx,
+            )
+        else:
+            f.seek(0)
+            MemoryPhoto.objects.create(
+                memory=memory,
+                image=f,
+                alt=memory.plan_title,
+                byte_size=f.size or 0,
+                order=start_order + idx,
+            )
+        saved += 1
+    return saved
+
+
 @api_login_required
 @require_POST
 def api_create_memory(request):
     plan_id = (request.POST.get("plan") or "").strip()
+    custom_title = (request.POST.get("customTitle") or "").strip()
     happened_at_str = (request.POST.get("happenedAt") or "").strip()
     note = (request.POST.get("note") or "").strip()
-    photo = request.FILES.get("photo")
+    external_album_url = (request.POST.get("externalAlbumUrl") or "").strip()
+    mark_completed = (request.POST.get("markCompleted") or "1").strip() != "0"
+
+    raw_files = list(request.FILES.getlist("photos"))
+    single_photo = request.FILES.get("photo")
+    if single_photo and single_photo not in raw_files:
+        raw_files.append(single_photo)
 
     field_errors = {}
     plan = Plan.objects.filter(id=plan_id).first() if plan_id else None
-    if not plan:
-        field_errors["plan"] = "Elegí un plan realizado."
+    if plan_id and not plan:
+        field_errors["plan"] = "No encontramos ese plan."
+
+    plan_title = plan.title if plan else custom_title
+    if not plan and not plan_title:
+        plan_title = "Momento especial"
 
     happened_date = parse_date(happened_at_str[:10]) if happened_at_str else None
     if not happened_date:
@@ -471,8 +549,15 @@ def api_create_memory(request):
     elif len(note) > 500:
         field_errors["note"] = "La nota no puede superar los 500 caracteres."
 
-    if photo and photo.size > 8 * 1024 * 1024:
-        field_errors["photo"] = "La foto no puede superar los 8 MB."
+    if external_album_url:
+        try:
+            URLValidator(schemes=["http", "https"])(external_album_url)
+        except ValidationError:
+            field_errors["externalAlbumUrl"] = "Pegá un enlace válido (https://photos.app.goo.gl/...)."
+
+    valid_files, photo_err = _validate_photos(raw_files)
+    if photo_err:
+        field_errors["photos"] = photo_err
 
     if field_errors:
         return JsonResponse(
@@ -484,25 +569,79 @@ def api_create_memory(request):
             status=400,
         )
 
-    if plan.status != "completed":
+    if plan and mark_completed and plan.status != "completed":
         plan.status = "completed"
         plan.save(update_fields=["status", "updated_at"])
 
     memory = Memory.objects.create(
         plan=plan,
-        plan_title=plan.title,
+        plan_title=plan_title[:120],
         note=note,
         happened_at=happened_date,
-        photo=photo,
-        photo_alt=plan.title,
+        external_album_url=external_album_url[:500],
+        photo_alt=plan_title[:160],
         created_by=request.user,
     )
+    if valid_files:
+        _save_memory_photo_files(memory, valid_files)
 
     return JsonResponse(
         {
             "success": True,
-            "message": f"Guardamos el recuerdo de “{plan.title}” en nuestro álbum.",
+            "message": f"Guardamos el recuerdo de “{memory.plan_title}” en nuestro álbum.",
             "memory": memory.to_dict(),
+            **_serialize_state(request.user),
+        }
+    )
+
+
+@api_login_required
+@require_POST
+def api_add_memory_photos(request):
+    memory_id = (request.POST.get("id") or "").strip()
+    memory = get_object_or_404(Memory, id=memory_id)
+    raw_files = list(request.FILES.getlist("photos"))
+    if not raw_files:
+        return JsonResponse(
+            {"success": False, "message": "Elegí al menos una foto para sumar al recuerdo."},
+            status=400,
+        )
+    valid_files, photo_err = _validate_photos(raw_files)
+    if photo_err:
+        return JsonResponse({"success": False, "message": photo_err}, status=400)
+
+    added = _save_memory_photo_files(memory, valid_files)
+    return JsonResponse(
+        {
+            "success": True,
+            "message": f"Sumamos {added} foto{'s' if added != 1 else ''} a “{memory.plan_title}”.",
+            "memory": memory.to_dict(),
+            **_serialize_state(request.user),
+        }
+    )
+
+
+@api_login_required
+@require_POST
+def api_delete_memory(request):
+    memory_id = _extract_id(request)
+    memory = get_object_or_404(Memory, id=memory_id)
+    title = memory.plan_title
+
+    # Clean up remote storage objects & local ImageField files
+    for mp in memory.photos.all():
+        if mp.remote_key:
+            delete_from_media_storage(mp.remote_key)
+        if mp.image:
+            mp.image.delete(save=False)
+    if memory.photo:
+        memory.photo.delete(save=False)
+
+    memory.delete()
+    return JsonResponse(
+        {
+            "success": True,
+            "message": f"Eliminamos el recuerdo “{title}”.",
             **_serialize_state(request.user),
         }
     )

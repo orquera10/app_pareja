@@ -159,22 +159,34 @@
               Recuerdos <span class="italic text-[#b96550]">juntos.</span>
             </h1>
           </div>
-          <p id="memories-count-subtitle" class="max-w-sm text-sm leading-6 text-[#766760]">
-            0 momentos guardados para volver a ellos cuando quieran.
-          </p>
+          <div class="flex flex-col items-start gap-3 sm:items-end">
+            <p id="memories-count-subtitle" class="max-w-sm text-sm leading-6 text-[#766760] sm:text-right">
+              0 momentos guardados para volver a ellos cuando quieran.
+            </p>
+            <button id="open-free-memory-btn" type="button" class="inline-flex items-center gap-2 rounded-full bg-[#332621] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#b96550]">
+              <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14M5 12h14"></path>
+              </svg>
+              Subir recuerdo
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick-pick strip: touch any scheduled or completed plan to upload photos -->
+        <div id="ready-plans-strip" class="ready-plans-strip hidden">
+          <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 class="font-serif text-xl text-[#332621]">Planes listos para subir fotos</h2>
+              <p class="text-xs text-[#796960]">Tocá una cita programada o realizada para guardar su recuerdo al instante.</p>
+            </div>
+            <select id="completed-plan-select" aria-label="Elegir otro plan" class="rounded-full border border-[#dfd3c8] bg-[#fffdf9] px-4 py-2 text-xs font-bold text-[#332621] outline-none">
+              <option value="" disabled selected>Ver todos los planes...</option>
+            </select>
+          </div>
+          <div id="ready-plans-cards" class="ready-plans-scroll"></div>
         </div>
 
         <div id="memories-album-container"></div>
-
-        <div id="completed-plans-picker-box" class="mt-10 rounded-[2rem] bg-[#e9e0d7] p-6 sm:flex sm:items-center sm:justify-between">
-          <div>
-            <h2 class="font-serif text-2xl">¿Falta algún momento?</h2>
-            <p class="mt-1 text-sm text-[#796960]">Elegí un plan realizado y sumalo al álbum.</p>
-          </div>
-          <select id="completed-plan-select" aria-label="Elegir un plan realizado" class="mt-4 w-full rounded-full border-0 bg-[#fffdf9] px-5 py-3 text-sm font-semibold outline-none sm:mt-0 sm:w-64">
-            <option value="" disabled selected>Elegir un plan</option>
-          </select>
-        </div>
       </section>
     </div>
 
@@ -332,7 +344,21 @@
         </div>
 
         <form id="form-create-memory" class="space-y-5" enctype="multipart/form-data">
-          <input type="hidden" name="plan" id="memory-plan-id" />
+          <div id="memory-plan-picker-wrap">
+            <label for="memory-plan-select" class="mb-2 block text-sm font-semibold text-[#4b3b35]">Cita o plan relacionado</label>
+            <select class="form-control" id="memory-plan-select" name="plan"></select>
+            <span data-field-error="plan" class="hidden mt-1.5 block text-xs font-medium text-[#a74734]"></span>
+          </div>
+
+          <div id="memory-custom-title-wrap" class="hidden">
+            <label for="memory-custom-title" class="mb-2 block text-sm font-semibold text-[#4b3b35]">Título del momento</label>
+            <input class="form-control" id="memory-custom-title" name="customTitle" maxlength="120" placeholder="Ej. Paseo improvisado de domingo" />
+          </div>
+
+          <label id="memory-mark-completed-wrap" class="hidden flex items-center gap-2.5 rounded-2xl bg-[#f5efe8] px-4 py-3 text-xs font-semibold text-[#4b3b35]">
+            <input type="checkbox" id="memory-mark-completed" checked class="h-4 w-4 accent-[#b96550]" />
+            <span>Marcar este plan como realizado al guardar</span>
+          </label>
 
           <label class="block">
             <span class="mb-2 block text-sm font-semibold text-[#4b3b35]">Fecha del recuerdo</span>
@@ -342,21 +368,29 @@
 
           <label class="block">
             <span class="mb-2 block text-sm font-semibold text-[#4b3b35]">¿Qué quieren recordar?</span>
-            <textarea class="form-control min-h-28 resize-none" name="note" placeholder="Una frase, una anécdota, cómo se sintieron..." maxlength="500" required></textarea>
+            <textarea class="form-control min-h-24 resize-none" name="note" placeholder="Una frase, una anécdota, cómo se sintieron..." maxlength="500" required></textarea>
             <span data-field-error="note" class="hidden mt-1.5 block text-xs font-medium text-[#a74734]"></span>
           </label>
 
-          <label class="block">
-            <span class="mb-2 block text-sm font-semibold text-[#4b3b35]">Foto (opcional, hasta 8 MB)</span>
-            <div class="rounded-2xl border border-dashed border-[#cdbdb2] bg-[#f6f1ec] p-5 text-center">
-              <svg aria-hidden="true" class="mx-auto mb-2 h-7 w-7 text-[#b96550]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <div>
+            <span class="mb-2 block text-sm font-semibold text-[#4b3b35]">Fotos (múltiples · se comprimen automáticamente)</span>
+            <div class="rounded-2xl border border-dashed border-[#cdbdb2] bg-[#f6f1ec] p-4 text-center">
+              <svg aria-hidden="true" class="mx-auto mb-1.5 h-6 w-6 text-[#b96550]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="4" width="18" height="16" rx="2"></rect>
                 <circle cx="9" cy="10" r="2"></circle>
                 <path d="m21 15-5-5L5 20"></path>
               </svg>
-              <input class="block w-full text-xs text-[#74635b] file:mr-3 file:rounded-full file:border-0 file:bg-[#332621] file:px-4 file:py-2 file:font-bold file:text-white" type="file" name="photo" accept="image/*" />
+              <input id="memory-photos-input" class="block w-full text-xs text-[#74635b] file:mr-3 file:rounded-full file:border-0 file:bg-[#332621] file:px-4 file:py-2 file:font-bold file:text-white" type="file" accept="image/*" multiple />
+              <p id="memory-compression-status" class="mt-2 text-[11px] font-semibold text-[#7a6a62]">Podés elegir varias fotos de tu galería a la vez.</p>
             </div>
-            <span data-field-error="photo" class="hidden mt-1.5 block text-xs font-medium text-[#a74734]"></span>
+            <div id="memory-photos-preview" class="photo-preview-grid hidden"></div>
+            <span data-field-error="photos" class="hidden mt-1.5 block text-xs font-medium text-[#a74734]"></span>
+          </div>
+
+          <label class="block">
+            <span class="mb-2 block text-sm font-semibold text-[#4b3b35]">Link de Google Photos <span class="text-xs font-normal text-[#8a776e]">(opcional)</span></span>
+            <input class="form-control" type="url" name="externalAlbumUrl" id="memory-external-url" placeholder="https://photos.app.goo.gl/..." />
+            <span data-field-error="externalAlbumUrl" class="hidden mt-1.5 block text-xs font-medium text-[#a74734]"></span>
           </label>
 
           <p id="memory-form-error" class="hidden text-sm font-semibold text-[#9d4939]"></p>
@@ -368,6 +402,64 @@
             </svg>
           </button>
         </form>
+      </div>
+    </dialog>
+
+    <!-- MODAL 5: SUMAR FOTOS A UN RECUERDO EXISTENTE -->
+    <dialog id="dialog-add-photos" class="nosotros-dialog" closedby="any" aria-labelledby="dialog-add-photos-title">
+      <div class="bottom-sheet max-h-[92dvh] w-full overflow-y-auto rounded-t-[1.75rem] bg-[#fffdf9] px-5 pb-6 pt-3 shadow-2xl sm:max-w-lg sm:rounded-[2rem] sm:p-8">
+        <div class="mx-auto mb-4 h-1 w-10 rounded-full bg-[#d7cbc2] sm:hidden"></div>
+        <div class="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <p class="mb-1 text-xs font-bold uppercase tracking-[0.18em] text-[#b05f4b]">Ampliar carrusel</p>
+            <h2 id="dialog-add-photos-title" class="font-serif text-3xl text-[#30231f]">Sumar fotos</h2>
+          </div>
+          <button data-close-dialog="dialog-add-photos" class="grid h-10 w-10 place-items-center rounded-full bg-[#f3eee8] text-[#6f625c]" type="button" aria-label="Cerrar">
+            <svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="m6 6 12 12M18 6 6 18"></path></svg>
+          </button>
+        </div>
+        <form id="form-add-photos" class="space-y-4">
+          <input type="hidden" id="add-photos-memory-id" />
+          <div class="rounded-2xl border border-dashed border-[#cdbdb2] bg-[#f6f1ec] p-4 text-center">
+            <input id="add-photos-input" class="block w-full text-xs text-[#74635b] file:mr-3 file:rounded-full file:border-0 file:bg-[#332621] file:px-4 file:py-2 file:font-bold file:text-white" type="file" accept="image/*" multiple />
+            <p id="add-photos-status" class="mt-2 text-[11px] font-semibold text-[#7a6a62]">Elegí varias fotos; se optimizan solas antes de subir.</p>
+          </div>
+          <div id="add-photos-preview" class="photo-preview-grid hidden"></div>
+          <p id="add-photos-error" class="hidden text-sm font-semibold text-[#9d4939]"></p>
+          <button id="submit-add-photos" class="primary-button" type="submit">
+            <span data-btn-label>Subir fotos al recuerdo</span>
+          </button>
+        </form>
+      </div>
+    </dialog>
+
+    <!-- MODAL 6: CONFIRMACIÓN (Cancelar plan o Borrar recuerdo) -->
+    <dialog id="dialog-confirm-action" class="nosotros-dialog" closedby="any" aria-labelledby="confirm-action-title">
+      <div class="bottom-sheet w-full rounded-t-[1.75rem] bg-[#fffdf9] px-5 pb-6 pt-3 shadow-2xl sm:max-w-md sm:rounded-[2rem] sm:p-7">
+        <div class="mx-auto mb-4 h-1 w-10 rounded-full bg-[#d7cbc2] sm:hidden"></div>
+        <p id="confirm-action-eyebrow" class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-[#b05f4b]">Confirmar</p>
+        <h2 id="confirm-action-title" class="font-serif text-2xl text-[#30231f]">¿Estás seguro?</h2>
+        <p id="confirm-action-desc" class="mt-2 text-sm leading-6 text-[#766760]"></p>
+        <div class="mt-6 grid grid-cols-2 gap-3">
+          <button data-close-dialog="dialog-confirm-action" type="button" class="secondary-button">Volver</button>
+          <button id="confirm-action-proceed" type="button" class="danger-outline-btn">Sí, continuar</button>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- MODAL 7: VISOR DE FOTOS FULLSCREEN (Lightbox) -->
+    <dialog id="dialog-photo-lightbox" class="nosotros-dialog" closedby="any" aria-label="Visor de fotos del recuerdo">
+      <div class="relative w-full max-w-3xl overflow-hidden rounded-[1.75rem] bg-[#211815] text-white shadow-2xl">
+        <div class="flex items-center justify-between gap-4 border-b border-white/10 px-5 py-3.5">
+          <div class="min-w-0">
+            <h2 id="lightbox-title" class="truncate font-serif text-xl">Recuerdo</h2>
+            <p id="lightbox-counter" class="text-xs text-white/70">1 / 1</p>
+          </div>
+          <button data-close-dialog="dialog-photo-lightbox" type="button" class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/15 text-white hover:bg-white/25" aria-label="Cerrar visor">
+            <svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="m6 6 12 12M18 6 6 18"></path></svg>
+          </button>
+        </div>
+        <div id="lightbox-body" class="relative bg-black"></div>
       </div>
     </dialog>
 
@@ -558,7 +650,7 @@
         return div.innerHTML;
       }
 
-      function showFeedback(message, isSuccess = true) {
+      function showFeedback(message, isSuccess = true, action = null) {
         const banner = document.getElementById("feedback-banner");
         if (!banner) return;
         if (!message) {
@@ -566,10 +658,119 @@
           banner.textContent = "";
           return;
         }
-        banner.textContent = message;
-        banner.className = `mb-6 rounded-2xl px-4 py-3 text-sm font-semibold ${
+        banner.innerHTML = "";
+        const textSpan = document.createElement("span");
+        textSpan.textContent = message;
+        banner.appendChild(textSpan);
+        if (action && action.label && typeof action.onClick === "function") {
+          const actBtn = document.createElement("button");
+          actBtn.type = "button";
+          actBtn.textContent = action.label;
+          actBtn.className = "ml-3 inline-flex rounded-full bg-[#332621] px-3.5 py-1 text-xs font-bold text-white shadow-sm hover:bg-[#b96550]";
+          actBtn.addEventListener("click", action.onClick);
+          banner.appendChild(actBtn);
+        }
+        banner.className = `mb-6 flex flex-wrap items-center justify-between gap-2 rounded-2xl px-4 py-3 text-sm font-semibold ${
           isSuccess ? "bg-[#dbe9df] text-[#315c40]" : "bg-[#f1d8d1] text-[#8d3f30]"
         }`;
+      }
+
+      function formatBytes(bytes) {
+        if (!bytes) return "0 KB";
+        if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+      }
+
+      async function compressSingleImage(file) {
+        if (!file.type.startsWith("image/") || file.type === "image/gif" || file.type === "image/svg+xml") {
+          return { blob: file, name: file.name, origBytes: file.size, compBytes: file.size };
+        }
+        const MAX_DIM = 1600;
+        const QUALITY = 0.82;
+        try {
+          const bitmap = await createImageBitmap(file);
+          let { width, height } = bitmap;
+          if (Math.max(width, height) > MAX_DIM) {
+            const scale = MAX_DIM / Math.max(width, height);
+            width = Math.max(1, Math.round(width * scale));
+            height = Math.max(1, Math.round(height * scale));
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(bitmap, 0, 0, width, height);
+          bitmap.close();
+
+          let blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/webp", QUALITY));
+          let ext = ".webp";
+          if (!blob || blob.size === 0) {
+            blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", QUALITY));
+            ext = ".jpg";
+          }
+          if (blob && blob.size < file.size) {
+            const baseName = (file.name || "foto").replace(/\.[^.]+$/, "");
+            return {
+              blob,
+              name: `${baseName}${ext}`,
+              origBytes: file.size,
+              compBytes: blob.size,
+              previewUrl: URL.createObjectURL(blob)
+            };
+          }
+        } catch (err) {
+          // Fallback to original file if browser cannot decode format
+        }
+        return {
+          blob: file,
+          name: file.name,
+          origBytes: file.size,
+          compBytes: file.size,
+          previewUrl: URL.createObjectURL(file)
+        };
+      }
+
+      let pendingCreateFiles = [];
+      let pendingAddFiles = [];
+      let confirmHandler = null;
+
+      function revokePendingUrls(arr) {
+        arr.forEach((it) => { if (it.previewUrl) URL.revokeObjectURL(it.previewUrl); });
+      }
+
+      function renderPhotoPreviewStrip(items, containerId, statusId, onRemove) {
+        const box = document.getElementById(containerId);
+        const status = document.getElementById(statusId);
+        if (!box || !status) return;
+        if (!items.length) {
+          box.innerHTML = "";
+          box.classList.add("hidden");
+          status.textContent = "Podés elegir varias fotos de tu galería a la vez.";
+          return;
+        }
+        const totalOrig = items.reduce((acc, x) => acc + x.origBytes, 0);
+        const totalComp = items.reduce((acc, x) => acc + x.compBytes, 0);
+        status.textContent = `${items.length} foto${items.length > 1 ? "s" : ""} lista${items.length > 1 ? "s" : ""} · ${formatBytes(totalOrig)} → ${formatBytes(totalComp)}`;
+        box.classList.remove("hidden");
+        box.innerHTML = items.map((it, idx) => `
+          <div class="photo-preview-item">
+            <img src="${it.previewUrl}" alt="Vista previa ${idx + 1}" />
+            <button type="button" data-remove-idx="${idx}" class="photo-preview-remove" aria-label="Quitar foto ${idx + 1}">×</button>
+          </div>
+        `).join("");
+        box.querySelectorAll("[data-remove-idx]").forEach((btn) => {
+          btn.addEventListener("click", () => onRemove(Number(btn.getAttribute("data-remove-idx"))));
+        });
+      }
+
+      function openConfirmDialog({ eyebrow, title, description, confirmLabel, onConfirm }) {
+        document.getElementById("confirm-action-eyebrow").textContent = eyebrow || "Confirmar";
+        document.getElementById("confirm-action-title").textContent = title || "¿Estás seguro?";
+        document.getElementById("confirm-action-desc").textContent = description || "";
+        const btn = document.getElementById("confirm-action-proceed");
+        btn.textContent = confirmLabel || "Sí, confirmar";
+        confirmHandler = onConfirm;
+        document.getElementById("dialog-confirm-action").showModal();
       }
 
       function setTab(tab) {
@@ -806,11 +1007,19 @@
                         : ""
                     }
                   </div>
-                  <div class="flex gap-2">
-                    <button data-action="reschedule" data-plan-id="${escapeHtml(plan.id)}" class="min-h-11 rounded-full border border-[#d8ccc2] px-4 py-2 text-xs font-bold text-[#6f5c53] transition active:bg-white sm:hover:bg-white" type="button">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <button data-action="add-memory" data-plan-id="${escapeHtml(plan.id)}" class="min-h-10 rounded-full border border-[#d8ccc2] bg-[#fffdf9] px-3.5 py-1.5 text-xs font-bold text-[#8e4637] transition active:bg-[#f2ddd6] sm:hover:bg-[#f2ddd6]" type="button">
+                      + Recuerdo
+                    </button>
+                    <button data-action="reschedule" data-plan-id="${escapeHtml(plan.id)}" class="min-h-10 rounded-full border border-[#d8ccc2] px-3.5 py-1.5 text-xs font-bold text-[#6f5c53] transition active:bg-white sm:hover:bg-white" type="button">
                       Reprogramar
                     </button>
-                    <button data-action="complete" data-plan-id="${escapeHtml(plan.id)}" class="grid h-11 w-11 place-items-center rounded-full bg-[#332621] text-white transition active:scale-95 sm:hover:bg-[#b96550]" type="button" aria-label="Marcar ${escapeHtml(plan.title)} como realizado">
+                    <button data-action="cancel" data-plan-id="${escapeHtml(plan.id)}" class="grid h-10 w-10 place-items-center rounded-full border border-[#e7cfc8] bg-[#fdf6f4] text-[#9d4939] transition active:scale-95 sm:hover:bg-[#f6dfd9]" type="button" aria-label="Cancelar ${escapeHtml(plan.title)}" title="Cancelar plan">
+                      <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 6 6 18M6 6l12 12"></path>
+                      </svg>
+                    </button>
+                    <button data-action="complete" data-plan-id="${escapeHtml(plan.id)}" class="grid h-10 w-10 place-items-center rounded-full bg-[#332621] text-white transition active:scale-95 sm:hover:bg-[#b96550]" type="button" aria-label="Marcar ${escapeHtml(plan.title)} como realizado" title="Marcar como realizado">
                       <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                         <path d="m5 12 4 4L19 6"></path>
                       </svg>
@@ -823,7 +1032,39 @@
           upcomingContainer.innerHTML = `<div class="grid gap-4 lg:grid-cols-2">${cardsHtml.join("")}</div>`;
         }
 
-        // 3. Render Memories Album
+        // 3. Render Ready Plans Strip inside Recuerdos (scheduled & completed plans ready to tap)
+        const readyStrip = document.getElementById("ready-plans-strip");
+        const readyCards = document.getElementById("ready-plans-cards");
+        const selectEl = document.getElementById("completed-plan-select");
+        const rememberedPlanIds = new Set(state.memories.map((m) => m.planId).filter(Boolean));
+        const orderedReadyPlans = [
+          ...completedPlans.filter((p) => !rememberedPlanIds.has(p.id)),
+          ...upcomingPlans,
+          ...completedPlans.filter((p) => rememberedPlanIds.has(p.id)),
+        ];
+        if (orderedReadyPlans.length > 0) {
+          readyStrip.classList.remove("hidden");
+          selectEl.innerHTML = `<option value="" disabled selected>Ver todos los planes (${orderedReadyPlans.length})...</option>` +
+            orderedReadyPlans.map((p) => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.title)} (${p.status === "completed" ? "Realizado" : "Programado"})</option>`).join("");
+          readyCards.innerHTML = orderedReadyPlans.slice(0, 10).map((p) => {
+            const d = new Date(p.date);
+            const dateLabel = dateFmtLong.format(d);
+            const badge = p.status === "completed"
+              ? (rememberedPlanIds.has(p.id) ? `<span class="rounded-full bg-[#ebe3da] px-2.5 py-0.5 text-[10px] font-bold text-[#6e5d54]">Ya tiene recuerdo</span>` : `<span class="rounded-full bg-[#dbe9df] px-2.5 py-0.5 text-[10px] font-bold text-[#315c40]">Listo · Realizado</span>`)
+              : `<span class="rounded-full bg-[#f2ddd6] px-2.5 py-0.5 text-[10px] font-bold text-[#8e4637]">Cita programada</span>`;
+            return `
+              <button type="button" data-quick-plan-id="${escapeHtml(p.id)}" class="ready-plan-card">
+                <div class="mb-2 flex items-center justify-between gap-2">${badge}</div>
+                <p class="truncate font-serif text-lg font-medium text-[#332621]">${escapeHtml(p.title)}</p>
+                <p class="mt-1 text-[11px] font-semibold text-[#857268]">${escapeHtml(dateLabel)} · Tocá para subir</p>
+              </button>
+            `;
+          }).join("");
+        } else {
+          readyStrip.classList.add("hidden");
+        }
+
+        // 4. Render Memories Album (with accessible Scroll-Snap Carousels for multi-photo memories)
         document.getElementById("memories-count-subtitle").textContent = `${state.memories.length} momentos guardados para volver a ellos cuando quieran.`;
         const memoriesContainer = document.getElementById("memories-album-container");
         if (state.memories.length === 0) {
@@ -835,51 +1076,174 @@
                 <path d="m21 15-5-5L5 20"></path>
               </svg>
               <h2 class="font-serif text-3xl">El álbum todavía está esperando</h2>
-              <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-[#7a6a62]">Cuando terminen un plan, guarden una foto y una frase sobre ese momento.</p>
+              <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-[#7a6a62]">Tocá cualquiera de sus citas de arriba o el botón “Subir recuerdo” para guardar fotos y frases.</p>
             </div>
           `;
         } else {
           const memHtml = state.memories.map((mem, idx) => {
             const aspectClass = idx % 3 === 1 ? "aspect-[4/5]" : "aspect-[4/3]";
             const happenedStr = dateFmtLong.format(new Date(mem.happenedAt));
+            const photos = (mem.photos && mem.photos.length) ? mem.photos : (mem.photo && mem.photo.url ? [mem.photo] : []);
+            let mediaBlock = "";
+            if (photos.length === 1) {
+              mediaBlock = `
+                <button type="button" data-open-lightbox="${escapeHtml(mem.id)}" data-slide-index="0" class="relative block w-full ${aspectClass} overflow-hidden text-left" aria-label="Ampliar foto de ${escapeHtml(mem.planTitle)}">
+                  <img src="${escapeHtml(photos[0].url)}" alt="${escapeHtml(photos[0].alt || mem.planTitle)}" loading="lazy" decoding="async" class="object-cover" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0" />
+                </button>
+              `;
+            } else if (photos.length > 1) {
+              const slidesHtml = photos.map((ph, pIdx) => `
+                <div role="group" aria-roledescription="slide" aria-label="${pIdx + 1} de ${photos.length}" data-marker-name="Ir a foto ${pIdx + 1}" class="carousel-slide">
+                  <button type="button" data-open-lightbox="${escapeHtml(mem.id)}" data-slide-index="${pIdx}" class="relative block w-full ${aspectClass} overflow-hidden" aria-label="Ampliar foto ${pIdx + 1} de ${escapeHtml(mem.planTitle)}">
+                    <img src="${escapeHtml(ph.url)}" alt="${escapeHtml(ph.alt || mem.planTitle)}" loading="${pIdx === 0 ? "eager" : "lazy"}" decoding="async" class="object-cover" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0" />
+                  </button>
+                </div>
+              `).join("");
+              mediaBlock = `
+                <section class="memory-carousel" data-carousel-id="${escapeHtml(mem.id)}" aria-roledescription="carousel" aria-label="Fotos de ${escapeHtml(mem.planTitle)}">
+                  <div class="carousel-controls">
+                    <button type="button" class="carousel-btn" data-direction="previous" aria-label="Foto anterior">
+                      <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"></path></svg>
+                    </button>
+                    <button type="button" class="carousel-btn" data-direction="next" aria-label="Foto siguiente">
+                      <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
+                    </button>
+                  </div>
+                  <span class="carousel-counter" data-carousel-counter>1 / ${photos.length}</span>
+                  <div class="carousel-track" tabindex="0" role="group" aria-label="Galería de fotos">${slidesHtml}</div>
+                  <p class="visually-hidden" role="status" aria-live="polite" data-carousel-status></p>
+                  <nav class="carousel-markers" aria-label="Elegir foto"></nav>
+                </section>
+              `;
+            } else {
+              mediaBlock = `
+                <div class="grid aspect-[4/2] place-items-center bg-[#eee4da] text-[#b96550]">
+                  <svg aria-hidden="true" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"></path>
+                  </svg>
+                </div>
+              `;
+            }
             return `
-              <article class="mb-5 break-inside-avoid overflow-hidden rounded-[1.75rem] border border-[#e3d9cf] bg-[#fffdf9] ${
-                idx % 3 === 1 ? "pt-0" : ""
-              }">
-                ${
-                  mem.photo && mem.photo.url
-                    ? `<div class="relative w-full ${aspectClass}">
-                        <img src="${escapeHtml(mem.photo.url)}" alt="${escapeHtml(mem.photo.alt || mem.planTitle)}" loading="lazy" decoding="async" class="object-cover" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0" />
-                      </div>`
-                    : `<div class="grid aspect-[4/2] place-items-center bg-[#eee4da] text-[#b96550]">
-                        <svg aria-hidden="true" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"></path>
-                        </svg>
-                      </div>`
-                }
+              <article class="mb-5 break-inside-avoid overflow-hidden rounded-[1.75rem] border border-[#e3d9cf] bg-[#fffdf9]">
+                ${mediaBlock}
                 <div class="p-5">
                   <p class="font-serif text-xl leading-snug">“${escapeHtml(mem.note)}”</p>
-                  <div class="mt-4 flex items-center justify-between gap-3 text-[11px] font-bold uppercase tracking-wider text-[#9a857b]">
+                  <div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold uppercase tracking-wider text-[#9a857b]">
                     <span>${escapeHtml(mem.planTitle)}</span>
                     <span>${escapeHtml(happenedStr)}</span>
+                  </div>
+                  <div class="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[#efe6dc] pt-3">
+                    <div class="flex flex-wrap items-center gap-1.5">
+                      <button type="button" data-mem-action="add-photos" data-memory-id="${escapeHtml(mem.id)}" class="icon-soft-btn">+ Fotos</button>
+                      ${
+                        mem.externalAlbumUrl
+                          ? `<a href="${escapeHtml(mem.externalAlbumUrl)}" target="_blank" rel="noopener noreferrer" class="icon-soft-btn">Google Photos ↗</a>`
+                          : ""
+                      }
+                    </div>
+                    <button type="button" data-mem-action="delete" data-memory-id="${escapeHtml(mem.id)}" class="icon-danger-btn" aria-label="Borrar recuerdo ${escapeHtml(mem.planTitle)}">
+                      Borrar
+                    </button>
                   </div>
                 </div>
               </article>
             `;
           });
-          memoriesContainer.innerHTML = `<div class="mt-9 columns-1 gap-5 sm:mt-12 sm:columns-2 lg:columns-3">${memHtml.join("")}</div>`;
+          memoriesContainer.innerHTML = `<div class="mt-7 columns-1 gap-5 sm:mt-9 sm:columns-2 lg:columns-3">${memHtml.join("")}</div>`;
+          initCarousels(memoriesContainer);
         }
+      }
 
-        // 4. Completed plans select dropdown
-        const pickerBox = document.getElementById("completed-plans-picker-box");
-        const selectEl = document.getElementById("completed-plan-select");
-        if (completedPlans.length > 0) {
-          pickerBox.classList.remove("hidden");
-          selectEl.innerHTML = `<option value="" disabled selected>Elegir un plan</option>` +
-            completedPlans.map((p) => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.title)}</option>`).join("");
-        } else {
-          pickerBox.classList.add("hidden");
-        }
+      function initCarousels(rootEl) {
+        rootEl.querySelectorAll(".memory-carousel").forEach((carousel) => {
+          const track = carousel.querySelector(".carousel-track");
+          const slides = Array.from(track.querySelectorAll(".carousel-slide"));
+          const markersNav = carousel.querySelector(".carousel-markers");
+          const counterEl = carousel.querySelector("[data-carousel-counter]");
+          const statusEl = carousel.querySelector("[data-carousel-status]");
+          const prevBtn = carousel.querySelector('[data-direction="previous"]');
+          const nextBtn = carousel.querySelector('[data-direction="next"]');
+          if (!track || slides.length <= 1) return;
+
+          let settledIndex = 0;
+          let activeIndex = 0;
+          let pendingIndex = null;
+          let rafPending = false;
+          let settleTimer = null;
+
+          markersNav.innerHTML = "";
+          const dots = slides.map((s, idx) => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "carousel-dot";
+            btn.setAttribute("aria-label", s.getAttribute("data-marker-name") || `Ir a foto ${idx + 1}`);
+            if (idx === 0) btn.setAttribute("aria-current", "true");
+            btn.addEventListener("click", () => goToSlide(idx));
+            markersNav.appendChild(btn);
+            return btn;
+          });
+
+          function getNearestIndex() {
+            const width = track.clientWidth || 1;
+            return Math.max(0, Math.min(slides.length - 1, Math.round(track.scrollLeft / width)));
+          }
+
+          function syncMarkers(idx) {
+            if (activeIndex === idx && dots[idx]?.getAttribute("aria-current") === "true") return;
+            activeIndex = idx;
+            dots.forEach((d, i) => {
+              if (i === idx) d.setAttribute("aria-current", "true");
+              else d.removeAttribute("aria-current");
+            });
+            if (counterEl) counterEl.textContent = `${idx + 1} / ${slides.length}`;
+          }
+
+          function goToSlide(idx) {
+            const target = ((idx % slides.length) + slides.length) % slides.length;
+            pendingIndex = target;
+            syncMarkers(target);
+            const offset = slides[target].offsetLeft - track.scrollLeft;
+            track.scrollBy({ left: offset });
+          }
+
+          function onSettle() {
+            const idx = getNearestIndex();
+            pendingIndex = null;
+            syncMarkers(idx);
+            if (idx !== settledIndex) {
+              settledIndex = idx;
+              if (statusEl) statusEl.textContent = `Foto ${idx + 1} de ${slides.length}`;
+            }
+          }
+
+          prevBtn.addEventListener("click", () => {
+            const base = pendingIndex !== null ? pendingIndex : getNearestIndex();
+            goToSlide(base - 1);
+          });
+          nextBtn.addEventListener("click", () => {
+            const base = pendingIndex !== null ? pendingIndex : getNearestIndex();
+            goToSlide(base + 1);
+          });
+
+          track.addEventListener("scroll", () => {
+            if (pendingIndex !== null) return;
+            if (!rafPending) {
+              rafPending = true;
+              requestAnimationFrame(() => {
+                rafPending = false;
+                syncMarkers(getNearestIndex());
+              });
+            }
+            if (!("onscrollend" in window)) {
+              clearTimeout(settleTimer);
+              settleTimer = setTimeout(onSettle, 120);
+            }
+          });
+          if ("onscrollend" in window) {
+            track.addEventListener("scrollend", onSettle);
+          }
+        });
       }
 
       // Dialog helpers using native <dialog>.showModal() and <dialog>.close()
@@ -905,15 +1269,108 @@
         document.getElementById("dialog-reschedule-plan").showModal();
       }
 
-      function openCreateMemoryDialog(plan) {
+      function syncMemoryDialogFields(selectedPlanId) {
+        const plan = state.plans.find((p) => p.id === selectedPlanId) || null;
+        const customWrap = document.getElementById("memory-custom-title-wrap");
+        const markWrap = document.getElementById("memory-mark-completed-wrap");
+        const dateInput = document.getElementById("memory-date-input");
+        const titleEl = document.getElementById("dialog-memory-title");
+        if (plan) {
+          titleEl.textContent = plan.title;
+          customWrap.classList.add("hidden");
+          if (plan.status !== "completed") {
+            markWrap.classList.remove("hidden");
+            document.getElementById("memory-mark-completed").checked = true;
+          } else {
+            markWrap.classList.add("hidden");
+          }
+          if (!dateInput.value || plan.date) {
+            dateInput.value = (plan.date || "").slice(0, 10) || new Date().toISOString().slice(0, 10);
+          }
+        } else {
+          titleEl.textContent = "Nuevo recuerdo";
+          customWrap.classList.remove("hidden");
+          markWrap.classList.add("hidden");
+          if (!dateInput.value) dateInput.value = new Date().toISOString().slice(0, 10);
+        }
+      }
+
+      function openCreateMemoryDialog(plan = null) {
         showFeedback(null);
         const form = document.getElementById("form-create-memory");
         form.reset();
+        revokePendingUrls(pendingCreateFiles);
+        pendingCreateFiles = [];
+        renderPhotoPreviewStrip(pendingCreateFiles, "memory-photos-preview", "memory-compression-status", () => {});
         clearFormErrors(form, "memory-form-error");
-        document.getElementById("dialog-memory-title").textContent = plan.title;
-        document.getElementById("memory-plan-id").value = plan.id;
-        document.getElementById("memory-date-input").value = (plan.date || "").slice(0, 10);
+
+        const select = document.getElementById("memory-plan-select");
+        const orderedPlans = [
+          ...state.plans.filter((p) => p.status === "completed"),
+          ...state.plans.filter((p) => p.status !== "completed"),
+        ];
+        select.innerHTML = `<option value="">Momento libre (sin plan previo)</option>` +
+          orderedPlans.map((p) => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.title)} (${p.status === "completed" ? "Realizado" : "Programado"})</option>`).join("");
+        select.value = plan ? plan.id : "";
+        document.getElementById("memory-date-input").value = plan && plan.date ? plan.date.slice(0, 10) : new Date().toISOString().slice(0, 10);
+        syncMemoryDialogFields(select.value);
         document.getElementById("dialog-create-memory").showModal();
+      }
+
+      function openAddPhotosDialog(memory) {
+        const form = document.getElementById("form-add-photos");
+        form.reset();
+        revokePendingUrls(pendingAddFiles);
+        pendingAddFiles = [];
+        renderPhotoPreviewStrip(pendingAddFiles, "add-photos-preview", "add-photos-status", () => {});
+        document.getElementById("add-photos-error").classList.add("hidden");
+        document.getElementById("dialog-add-photos-title").textContent = memory.planTitle;
+        document.getElementById("add-photos-memory-id").value = memory.id;
+        document.getElementById("dialog-add-photos").showModal();
+      }
+
+      function openLightbox(memory, initialIdx = 0) {
+        const photos = (memory.photos && memory.photos.length) ? memory.photos : (memory.photo && memory.photo.url ? [memory.photo] : []);
+        if (!photos.length) return;
+        document.getElementById("lightbox-title").textContent = memory.planTitle;
+        document.getElementById("lightbox-counter").textContent = `${initialIdx + 1} / ${photos.length}`;
+        const body = document.getElementById("lightbox-body");
+        if (photos.length === 1) {
+          body.innerHTML = `<img src="${escapeHtml(photos[0].url)}" alt="${escapeHtml(photos[0].alt || memory.planTitle)}" class="mx-auto max-h-[75dvh] w-full object-contain" />`;
+        } else {
+          const slides = photos.map((ph, idx) => `
+            <div role="group" aria-roledescription="slide" aria-label="${idx + 1} de ${photos.length}" data-marker-name="Foto ${idx + 1}" class="carousel-slide flex items-center justify-center bg-black">
+              <img src="${escapeHtml(ph.url)}" alt="${escapeHtml(ph.alt || memory.planTitle)}" class="max-h-[75dvh] w-full object-contain" />
+            </div>
+          `).join("");
+          body.innerHTML = `
+            <section class="memory-carousel" aria-roledescription="carousel" aria-label="Fotos ampliadas de ${escapeHtml(memory.planTitle)}">
+              <div class="carousel-controls">
+                <button type="button" class="carousel-btn" data-direction="previous" aria-label="Foto anterior">
+                  <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"></path></svg>
+                </button>
+                <button type="button" class="carousel-btn" data-direction="next" aria-label="Foto siguiente">
+                  <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"></path></svg>
+                </button>
+              </div>
+              <div class="carousel-track" tabindex="0" role="group" aria-label="Galería ampliada">${slides}</div>
+              <p class="visually-hidden" role="status" aria-live="polite" data-carousel-status></p>
+              <nav class="carousel-markers" aria-label="Elegir foto"></nav>
+            </section>
+          `;
+          initCarousels(body);
+          const track = body.querySelector(".carousel-track");
+          requestAnimationFrame(() => {
+            if (track && initialIdx > 0) {
+              track.scrollLeft = track.clientWidth * initialIdx;
+            }
+          });
+          track?.addEventListener("scroll", () => {
+            const idx = Math.round(track.scrollLeft / (track.clientWidth || 1));
+            document.getElementById("lightbox-counter").textContent = `${Math.min(photos.length, idx + 1)} / ${photos.length}`;
+          });
+        }
+        document.getElementById("dialog-photo-lightbox").showModal();
       }
 
       function clearFormErrors(form, errorBannerId) {
@@ -974,6 +1431,103 @@
       document.getElementById("top-new-plan-btn").addEventListener("click", openCreatePlanDialog);
       document.getElementById("mobile-new-plan-btn").addEventListener("click", openCreatePlanDialog);
       document.getElementById("inline-add-plan-btn").addEventListener("click", openCreatePlanDialog);
+      document.getElementById("open-free-memory-btn").addEventListener("click", () => openCreateMemoryDialog(null));
+      document.getElementById("memory-plan-select").addEventListener("change", (e) => syncMemoryDialogFields(e.target.value));
+
+      // Confirmation modal proceed button
+      document.getElementById("confirm-action-proceed").addEventListener("click", async () => {
+        const fn = confirmHandler;
+        confirmHandler = null;
+        document.getElementById("dialog-confirm-action").close();
+        if (typeof fn === "function") await fn();
+      });
+
+      // Multi-photo selection & automatic compression (Create Memory)
+      document.getElementById("memory-photos-input").addEventListener("change", async (e) => {
+        const files = Array.from(e.target.files || []);
+        e.target.value = "";
+        if (!files.length) return;
+        document.getElementById("memory-compression-status").textContent = `Optimizando ${files.length} foto${files.length > 1 ? "s" : ""}...`;
+        for (const f of files.slice(0, 15 - pendingCreateFiles.length)) {
+          pendingCreateFiles.push(await compressSingleImage(f));
+        }
+        const removeFn = (idx) => {
+          const removed = pendingCreateFiles.splice(idx, 1);
+          revokePendingUrls(removed);
+          renderPhotoPreviewStrip(pendingCreateFiles, "memory-photos-preview", "memory-compression-status", removeFn);
+        };
+        renderPhotoPreviewStrip(pendingCreateFiles, "memory-photos-preview", "memory-compression-status", removeFn);
+      });
+
+      // Multi-photo selection & automatic compression (Add Photos to existing Memory)
+      document.getElementById("add-photos-input").addEventListener("change", async (e) => {
+        const files = Array.from(e.target.files || []);
+        e.target.value = "";
+        if (!files.length) return;
+        document.getElementById("add-photos-status").textContent = `Optimizando ${files.length} foto${files.length > 1 ? "s" : ""}...`;
+        for (const f of files.slice(0, 15 - pendingAddFiles.length)) {
+          pendingAddFiles.push(await compressSingleImage(f));
+        }
+        const removeFn = (idx) => {
+          const removed = pendingAddFiles.splice(idx, 1);
+          revokePendingUrls(removed);
+          renderPhotoPreviewStrip(pendingAddFiles, "add-photos-preview", "add-photos-status", removeFn);
+        };
+        renderPhotoPreviewStrip(pendingAddFiles, "add-photos-preview", "add-photos-status", removeFn);
+      });
+
+      // Ready plans quick cards in Recuerdos view
+      document.getElementById("ready-plans-cards").addEventListener("click", (e) => {
+        const card = e.target.closest("button[data-quick-plan-id]");
+        if (!card) return;
+        const plan = state.plans.find((p) => p.id === card.getAttribute("data-quick-plan-id"));
+        if (plan) openCreateMemoryDialog(plan);
+      });
+
+      // Memories album delegation: Lightbox, + Fotos, Borrar recuerdo
+      document.getElementById("memories-album-container").addEventListener("click", (e) => {
+        const lbTrigger = e.target.closest("[data-open-lightbox]");
+        if (lbTrigger) {
+          const mem = state.memories.find((m) => m.id === lbTrigger.getAttribute("data-open-lightbox"));
+          const idx = Number(lbTrigger.getAttribute("data-slide-index") || 0);
+          if (mem) openLightbox(mem, idx);
+          return;
+        }
+        const actionBtn = e.target.closest("button[data-mem-action]");
+        if (!actionBtn) return;
+        const memId = actionBtn.getAttribute("data-memory-id");
+        const mem = state.memories.find((m) => m.id === memId);
+        if (!mem) return;
+        const act = actionBtn.getAttribute("data-mem-action");
+        if (act === "add-photos") {
+          openAddPhotosDialog(mem);
+        } else if (act === "delete") {
+          openConfirmDialog({
+            eyebrow: "Borrar recuerdo",
+            title: `¿Borrar “${mem.planTitle}”?`,
+            description: "Se eliminarán este recuerdo y todas sus fotos guardadas para liberar espacio.",
+            confirmLabel: "Sí, borrar recuerdo",
+            onConfirm: async () => {
+              const fd = new FormData();
+              fd.append("id", mem.id);
+              const res = await fetch("/api/memories/delete/", {
+                method: "POST",
+                headers: { "X-CSRFToken": getCsrfToken() },
+                body: fd
+              });
+              const data = await res.json();
+              if (data.success) {
+                state.plans = data.plans;
+                state.memories = data.memories;
+                render();
+                showFeedback(data.message, true);
+              } else {
+                showFeedback(data.message || "No pudimos borrar el recuerdo.", false);
+              }
+            }
+          });
+        }
+      });
 
       // Event delegation for plan cards
       document.getElementById("upcoming-plans-container").addEventListener("click", async (e) => {
@@ -988,8 +1542,35 @@
         const plan = state.plans.find((p) => p.id === planId);
         if (!plan) return;
 
-        if (action === "reschedule") {
+        if (action === "add-memory") {
+          openCreateMemoryDialog(plan);
+        } else if (action === "reschedule") {
           openRescheduleDialog(plan);
+        } else if (action === "cancel") {
+          openConfirmDialog({
+            eyebrow: "Cancelar plan",
+            title: `¿Cancelar “${plan.title}”?`,
+            description: "Se quitará de sus próximos planes agendados.",
+            confirmLabel: "Sí, cancelar plan",
+            onConfirm: async () => {
+              const fd = new FormData();
+              fd.append("id", plan.id);
+              const res = await fetch("/api/plans/cancel/", {
+                method: "POST",
+                headers: { "X-CSRFToken": getCsrfToken() },
+                body: fd
+              });
+              const data = await res.json();
+              if (data.success) {
+                state.plans = data.plans;
+                state.memories = data.memories;
+                render();
+                showFeedback(data.message, true);
+              } else {
+                showFeedback(data.message || "No pudimos cancelar el plan.", false);
+              }
+            }
+          });
         } else if (action === "complete") {
           btn.disabled = true;
           try {
@@ -1002,10 +1583,14 @@
             });
             const data = await res.json();
             if (data.success) {
+              const completedPlan = data.plan || plan;
               state.plans = data.plans;
               state.memories = data.memories;
               render();
-              showFeedback(data.message, true);
+              showFeedback(data.message, true, {
+                label: "Subir recuerdo ahora",
+                onClick: () => openCreateMemoryDialog(completedPlan)
+              });
             } else {
               showFeedback(data.message || "No se pudo actualizar el plan.", false);
             }
@@ -1091,22 +1676,29 @@
         }
       });
 
-      // Form 3: Create Memory
+      // Form 3: Create Memory (with compressed multiple photos)
       document.getElementById("form-create-memory").addEventListener("submit", async (e) => {
         e.preventDefault();
         const form = e.currentTarget;
         const btn = document.getElementById("submit-create-memory");
         const label = btn.querySelector("[data-btn-label]");
         btn.disabled = true;
-        label.textContent = "Guardando...";
+        label.textContent = "Subiendo...";
         try {
+          const fd = new FormData(form);
+          fd.delete("photos");
+          fd.set("markCompleted", document.getElementById("memory-mark-completed").checked ? "1" : "0");
+          pendingCreateFiles.forEach((item) => fd.append("photos", item.blob, item.name));
+
           const res = await fetch("/api/memories/create/", {
             method: "POST",
             headers: { "X-CSRFToken": getCsrfToken() },
-            body: new FormData(form)
+            body: fd
           });
           const data = await res.json();
           if (data.success) {
+            revokePendingUrls(pendingCreateFiles);
+            pendingCreateFiles = [];
             state.plans = data.plans;
             state.memories = data.memories;
             render();
@@ -1120,6 +1712,51 @@
         } finally {
           btn.disabled = false;
           label.textContent = "Guardar recuerdo";
+        }
+      });
+
+      // Form 4: Add photos to existing Memory
+      document.getElementById("form-add-photos").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const errEl = document.getElementById("add-photos-error");
+        errEl.classList.add("hidden");
+        if (!pendingAddFiles.length) {
+          errEl.textContent = "Elegí al menos una foto primero.";
+          errEl.classList.remove("hidden");
+          return;
+        }
+        const btn = document.getElementById("submit-add-photos");
+        const label = btn.querySelector("[data-btn-label]");
+        btn.disabled = true;
+        label.textContent = "Subiendo...";
+        try {
+          const fd = new FormData();
+          fd.append("id", document.getElementById("add-photos-memory-id").value);
+          pendingAddFiles.forEach((item) => fd.append("photos", item.blob, item.name));
+          const res = await fetch("/api/memories/add-photos/", {
+            method: "POST",
+            headers: { "X-CSRFToken": getCsrfToken() },
+            body: fd
+          });
+          const data = await res.json();
+          if (data.success) {
+            revokePendingUrls(pendingAddFiles);
+            pendingAddFiles = [];
+            state.plans = data.plans;
+            state.memories = data.memories;
+            render();
+            document.getElementById("dialog-add-photos").close();
+            showFeedback(data.message, true);
+          } else {
+            errEl.textContent = data.message || "No pudimos sumar las fotos.";
+            errEl.classList.remove("hidden");
+          }
+        } catch (err) {
+          errEl.textContent = "Error de conexión al subir las fotos.";
+          errEl.classList.remove("hidden");
+        } finally {
+          btn.disabled = false;
+          label.textContent = "Subir fotos al recuerdo";
         }
       });
 

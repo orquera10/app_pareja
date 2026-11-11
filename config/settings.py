@@ -117,8 +117,12 @@ STORAGES = {
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
-FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 30 * 1024 * 1024  # 30 MB (múltiples fotos)
+FILE_UPLOAD_MAX_MEMORY_SIZE = 15 * 1024 * 1024  # 15 MB
+
+MEDIA_STORAGE_URL = os.environ.get("MEDIA_STORAGE_URL", "https://storage.dario10.pw").rstrip("/")
+MEDIA_STORAGE_KEY = os.environ.get("MEDIA_STORAGE_KEY", "")
+MEDIA_STORAGE_BUCKET = os.environ.get("MEDIA_STORAGE_BUCKET", "nosotros")
 
 LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/"

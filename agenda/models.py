@@ -86,6 +86,9 @@ class Memory(models.Model):
         "URL de foto estática/inicial", max_length=300, blank=True, default=""
     )
     photo_alt = models.CharField("Texto alternativo", max_length=160, blank=True, default="")
+    external_album_url = models.URLField(
+        "Link de Google Photos (opcional)", max_length=500, blank=True, default=""
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -114,8 +117,32 @@ class Memory(models.Model):
             return self.photo_static_url
         return None
 
+    def get_photos_list(self) -> list[dict]:
+        items = []
+        for mp in self.photos.all():
+            u = mp.get_url()
+            if u:
+                items.append(
+                    {
+                        "id": str(mp.id),
+                        "url": u,
+                        "alt": mp.alt or self.plan_title,
+                    }
+                )
+        if not items:
+            legacy_url = self.get_photo_url()
+            if legacy_url:
+                items.append(
+                    {
+                        "id": f"legacy-{self.id}",
+                        "url": legacy_url,
+                        "alt": self.photo_alt or self.plan_title,
+                    }
+                )
+        return items
+
     def to_dict(self) -> dict:
-        photo_url = self.get_photo_url()
+        photos_list = self.get_photos_list()
         author_name = ""
         if self.created_by:
             prof = getattr(self.created_by, "couple_profile", None)
@@ -124,19 +151,50 @@ class Memory(models.Model):
             )
         return {
             "id": str(self.id),
+            "planId": str(self.plan_id) if self.plan_id else None,
             "planTitle": self.plan_title,
             "note": self.note,
             "happenedAt": f"{self.happened_at.isoformat()}T12:00:00.000Z",
             "authorName": author_name,
-            "photo": (
-                {
-                    "url": photo_url,
-                    "alt": self.photo_alt or self.plan_title,
-                }
-                if photo_url
-                else None
-            ),
+            "externalAlbumUrl": self.external_album_url or "",
+            "photos": photos_list,
+            "photo": photos_list[0] if photos_list else None,
         }
+
+
+class MemoryPhoto(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    memory = models.ForeignKey(
+        Memory,
+        on_delete=models.CASCADE,
+        related_name="photos",
+    )
+    image = models.ImageField("Foto local", upload_to="memories/", null=True, blank=True)
+    remote_url = models.URLField("URL externa (Media Storage)", max_length=500, blank=True, default="")
+    remote_key = models.CharField("Clave remota", max_length=300, blank=True, default="")
+    static_url = models.CharField("URL estática", max_length=300, blank=True, default="")
+    alt = models.CharField("Texto alternativo", max_length=160, blank=True, default="")
+    byte_size = models.PositiveIntegerField(default=0)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "nosotros_memory_photo"
+        ordering = ["order", "created_at"]
+        verbose_name = "Foto de recuerdo"
+        verbose_name_plural = "Fotos de recuerdos"
+
+    def get_url(self) -> str | None:
+        if self.remote_url:
+            return self.remote_url
+        if self.image:
+            try:
+                return self.image.url
+            except ValueError:
+                pass
+        if self.static_url:
+            return self.static_url
+        return None
 
 
 class CoupleProfile(models.Model):

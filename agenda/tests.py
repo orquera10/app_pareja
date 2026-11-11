@@ -204,16 +204,46 @@ class NosotrosAgendaTests(TestCase):
             b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01"
             b"\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
         )
-        photo = SimpleUploadedFile("recuerdo.png", png_bytes, content_type="image/png")
+        photo1 = SimpleUploadedFile("recuerdo1.png", png_bytes, content_type="image/png")
+        photo2 = SimpleUploadedFile("recuerdo2.png", png_bytes, content_type="image/png")
         res_mem = self.client.post(
             reverse("api_create_memory"),
             {
                 "plan": str(created_plan.id),
                 "happenedAt": date.today().isoformat(),
                 "note": "Fue una noche mágica.",
-                "photo": photo,
+                "externalAlbumUrl": "https://photos.app.goo.gl/ejemplo123",
+                "photos": [photo1, photo2],
             },
         )
         self.assertEqual(res_mem.status_code, 200)
-        self.assertTrue(res_mem.json()["success"])
+        mem_json = res_mem.json()
+        self.assertTrue(mem_json["success"])
         self.assertEqual(Memory.objects.count(), 4)
+        self.assertEqual(len(mem_json["memory"]["photos"]), 2)
+        self.assertEqual(mem_json["memory"]["externalAlbumUrl"], "https://photos.app.goo.gl/ejemplo123")
+
+        # Add another photo to existing memory carousel
+        photo3 = SimpleUploadedFile("recuerdo3.png", png_bytes, content_type="image/png")
+        res_add = self.client.post(
+            reverse("api_add_memory_photos"),
+            {"id": mem_json["memory"]["id"], "photos": [photo3]},
+        )
+        self.assertEqual(res_add.status_code, 200)
+        self.assertEqual(len(res_add.json()["memory"]["photos"]), 3)
+
+        # Delete memory cleanly
+        res_del_mem = self.client.post(
+            reverse("api_delete_memory"),
+            {"id": mem_json["memory"]["id"]},
+        )
+        self.assertEqual(res_del_mem.status_code, 200)
+        self.assertEqual(Memory.objects.count(), 3)
+
+        # Cancel a planned date cleanly
+        res_cancel = self.client.post(
+            reverse("api_cancel_plan"),
+            {"id": str(created_plan.id)},
+        )
+        self.assertEqual(res_cancel.status_code, 200)
+        self.assertEqual(Plan.objects.count(), 6)

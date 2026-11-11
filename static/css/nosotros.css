@@ -332,3 +332,239 @@ input[type="radio"]:focus-visible + .choice-card-label {
 .danger-outline-btn:hover {
   background: #f7e4df;
 }
+
+/* Ready-to-remember plans grid in Recuerdos */
+.ready-plans-strip {
+  margin-top: 2rem;
+  border-radius: 1.75rem;
+  background: #f1ebe5;
+  border: 1px solid #e4dad0;
+  padding: 1.25rem;
+}
+
+.ready-plans-scroll {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.35rem;
+  scroll-snap-type: x proximity;
+}
+
+.ready-plan-card {
+  flex: 0 0 225px;
+  scroll-snap-align: start;
+  text-align: left;
+  border-radius: 1.25rem;
+  border: 1px solid #dfd3c8;
+  background: #fffdf9;
+  padding: 0.9rem 1rem;
+  transition: transform 0.16s, border-color 0.16s, box-shadow 0.16s;
+}
+
+.ready-plan-card:hover {
+  transform: translateY(-2px);
+  border-color: #c89d8e;
+  box-shadow: 0 10px 24px rgba(51, 38, 33, 0.08);
+}
+
+.ready-plan-card:focus-visible {
+  outline: 2px solid #b96550;
+  outline-offset: 2px;
+}
+
+/* Multi-photo preview grid inside upload modal */
+.photo-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.photo-preview-item {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 0.9rem;
+  overflow: hidden;
+  border: 1px solid #dfd3c8;
+  background: #efe8e0;
+}
+
+.photo-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photo-preview-remove {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  width: 1.45rem;
+  height: 1.45rem;
+  border-radius: 999px;
+  background: rgba(51, 38, 33, 0.85);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Accessible Scroll-Snap Carousel inside Memory cards */
+.memory-carousel {
+  position: relative;
+  overflow: hidden;
+  background: #efe8e0;
+}
+
+.carousel-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  touch-action: manipulation;
+  width: 100%;
+}
+
+.carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .carousel-track {
+    scroll-behavior: smooth;
+  }
+}
+
+.carousel-slide {
+  flex: 0 0 100%;
+  width: 100%;
+  scroll-snap-align: center;
+  position: relative;
+}
+
+.carousel-controls {
+  position: absolute;
+  inset-inline: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.carousel-btn {
+  pointer-events: auto;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  background: rgba(255, 253, 249, 0.9);
+  color: #332621;
+  border: 1px solid rgba(51, 38, 33, 0.12);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 12px rgba(40, 25, 19, 0.16);
+  touch-action: manipulation;
+  transition: background-color 0.15s, transform 0.15s;
+}
+
+.carousel-btn:hover {
+  background: #fff;
+  transform: scale(1.05);
+}
+
+.carousel-btn:focus-visible {
+  outline: 2px solid #b96550;
+  outline-offset: 2px;
+}
+
+.carousel-counter {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  z-index: 3;
+  border-radius: 999px;
+  background: rgba(41, 29, 24, 0.72);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.carousel-markers {
+  position: absolute;
+  bottom: 0.65rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(41, 29, 24, 0.45);
+  backdrop-filter: blur(6px);
+}
+
+.carousel-dot {
+  width: 0.48rem;
+  height: 0.48rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  padding: 0;
+  border: 0;
+  touch-action: manipulation;
+  transition: transform 0.15s, background-color 0.15s;
+}
+
+.carousel-dot[aria-current="true"] {
+  background: #fff;
+  transform: scale(1.25);
+}
+
+.carousel-dot:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.icon-danger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border-radius: 999px;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #9b5143;
+  background: #f9ece8;
+  border: 1px solid #eccfc7;
+  transition: background-color 0.15s;
+}
+
+.icon-danger-btn:hover {
+  background: #f3dcd6;
+}
+
+.icon-soft-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border-radius: 999px;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #5d4c45;
+  background: #f3eee8;
+  border: 1px solid #e2d8ce;
+  transition: background-color 0.15s;
+}
+
+.icon-soft-btn:hover {
+  background: #e9e0d7;
+}

@@ -1,5 +1,10 @@
 from django.contrib import admin
-from .models import CoupleProfile, Memory, Plan
+from .models import CoupleProfile, Memory, MemoryPhoto, Plan
+
+
+class MemoryPhotoInline(admin.TabularInline):
+    model = MemoryPhoto
+    extra = 0
 
 
 @admin.register(Plan)
@@ -13,6 +18,7 @@ class PlanAdmin(admin.ModelAdmin):
 class MemoryAdmin(admin.ModelAdmin):
     list_display = ("plan_title", "happened_at", "note", "created_by")
     search_fields = ("plan_title", "note")
+    inlines = [MemoryPhotoInline]
 
 
 @admin.register(CoupleProfile)
