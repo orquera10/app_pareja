@@ -13,6 +13,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from PIL import Image, ImageOps
 
+mimetypes.add_type("image/webp", ".webp")
+mimetypes.add_type("image/avif", ".avif")
+mimetypes.add_type("image/heic", ".heic")
+
 DATA_DIR = Path(os.environ.get("DATA_DIR", "/data")).resolve()
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
