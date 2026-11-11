@@ -208,6 +208,13 @@ dialog.nosotros-dialog[data-closing]::backdrop {
   }
 }
 
+button[data-close-dialog].rounded-full {
+  flex-shrink: 0;
+  aspect-ratio: 1 / 1;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+}
+
 
 /* Auth, Onboarding & Couple Account Styles */
 .visually-hidden {
