@@ -178,12 +178,19 @@ dialog.nosotros-dialog[data-closing]::backdrop {
 .pb-2 { padding-bottom: calc(var(--spacing) * 2); }
 .h-1\.5 { height: calc(var(--spacing) * 1.5); }
 .w-1\.5 { width: calc(var(--spacing) * 1.5); }
+.h-3\.5 { height: calc(var(--spacing) * 3.5); }
+.w-3\.5 { width: calc(var(--spacing) * 3.5); }
 .min-w-\[16rem\] { min-width: 16rem; }
 .rounded-\[1\.35rem\] { border-radius: 1.35rem; }
 .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
 .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tracking-\[0\.16em\] { letter-spacing: 0.16em; }
+.bg-\[\#3c5c46\] { background-color: #3c5c46; }
 .bg-\[\#5f8b6b\] { background-color: #5f8b6b; }
+.memory-card-focus {
+  box-shadow: 0 0 0 3px #3c5c46, 0 20px 44px rgba(60, 92, 70, 0.22);
+  border-color: #3c5c46;
+}
 .bg-\[\#dce8df\] { background-color: #dce8df; }
 .bg-\[\#f3f8f4\] { background-color: #f3f8f4; }
 .border-\[\#d7e2da\] { border-color: #d7e2da; }
@@ -268,6 +275,7 @@ button[data-close-dialog].rounded-full {
     .sm\:hover\:bg-\[\#f5f0ea\]:hover { background-color: #f5f0ea; }
     .sm\:hover\:bg-\[\#f6eae6\]:hover { background-color: #f6eae6; }
     .sm\:hover\:bg-\[\#dce8df\]:hover { background-color: #dce8df; }
+    .sm\:hover\:bg-\[\#314c39\]:hover { background-color: #314c39; }
   }
 }
 
