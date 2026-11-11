@@ -105,10 +105,7 @@
           </div>
           <div id="strip-days-grid" class="grid grid-cols-7 gap-2"></div>
           <div class="mt-4 flex items-center justify-between gap-2 rounded-2xl bg-[#f5f0ea] px-4 py-3">
-            <div class="flex min-w-0 items-center gap-2">
-              <span id="strip-filter-label" class="truncate text-sm font-bold capitalize text-[#594a43]">Todos los próximos planes</span>
-              <button id="strip-clear-filter-btn" type="button" class="hidden shrink-0 rounded-full bg-[#e6ddd3] px-2.5 py-0.5 text-[11px] font-bold text-[#594a43] transition hover:bg-[#ddd1c6]">Ver todos</button>
-            </div>
+            <span id="strip-filter-label" class="truncate text-sm font-bold capitalize text-[#594a43]">Todos los próximos planes</span>
             <span id="strip-upcoming-count" class="shrink-0 rounded-full bg-[#fffdf9] px-3 py-1 text-xs font-bold text-[#9a5848]">0 planes</span>
           </div>
         </section>
@@ -117,10 +114,10 @@
         <section class="mt-11 sm:mt-14">
           <div class="mb-6 flex items-end justify-between gap-4">
             <div>
-              <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-[#9c887e]">Lo que viene</p>
-              <h2 class="font-serif text-3xl tracking-tight sm:text-4xl">Próximos planes</h2>
+              <p id="plans-section-eyebrow" class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-[#9c887e]">Lo que viene</p>
+              <h2 id="plans-section-title" class="font-serif text-3xl tracking-tight sm:text-4xl">Próximos planes</h2>
             </div>
-            <button id="inline-add-plan-btn" class="text-sm font-bold text-[#a65340] hover:underline" type="button">Agregar otro</button>
+            <button id="inline-add-plan-btn" class="shrink-0 whitespace-nowrap text-sm font-bold text-[#a65340] hover:underline" type="button">Agregar otro</button>
           </div>
           <div id="upcoming-plans-container"></div>
 
@@ -936,22 +933,29 @@
 
         const upcomingKeys = new Set(upcomingPlans.map((p) => utcDateKey(new Date(p.date))));
         const completedKeys = new Set(completedPlans.map((p) => utcDateKey(new Date(p.date))));
-        const filteredUpcomingPlans = selectedDayKey
-          ? upcomingPlans.filter((p) => utcDateKey(new Date(p.date)) === selectedDayKey)
+        const rememberedPlanIds = new Set(state.memories.map((m) => m.planId).filter(Boolean));
+        const displayedPlans = selectedDayKey
+          ? state.plans
+              .filter((p) => utcDateKey(new Date(p.date)) === selectedDayKey)
+              .sort((a, b) => new Date(a.date) - new Date(b.date))
           : upcomingPlans;
 
         const filterLabelEl = document.getElementById("strip-filter-label");
-        const clearFilterBtn = document.getElementById("strip-clear-filter-btn");
+        const sectionEyebrowEl = document.getElementById("plans-section-eyebrow");
+        const sectionTitleEl = document.getElementById("plans-section-title");
         if (selectedDayKey) {
           const [y, m, dNum] = selectedDayKey.split("-").map(Number);
           const selDate = new Date(Date.UTC(y, m - 1, dNum));
-          filterLabelEl.textContent = dateFmtWeekdayLong.format(selDate);
-          clearFilterBtn.classList.remove("hidden");
+          const formattedSelDate = dateFmtWeekdayLong.format(selDate);
+          filterLabelEl.textContent = formattedSelDate;
+          if (sectionEyebrowEl) sectionEyebrowEl.textContent = "Planes del día";
+          if (sectionTitleEl) sectionTitleEl.textContent = formattedSelDate;
         } else {
           filterLabelEl.textContent = "Todos los próximos planes";
-          clearFilterBtn.classList.add("hidden");
+          if (sectionEyebrowEl) sectionEyebrowEl.textContent = "Lo que viene";
+          if (sectionTitleEl) sectionTitleEl.textContent = "Próximos planes";
         }
-        document.getElementById("strip-upcoming-count").textContent = `${filteredUpcomingPlans.length} ${filteredUpcomingPlans.length === 1 ? "plan" : "planes"}`;
+        document.getElementById("strip-upcoming-count").textContent = `${displayedPlans.length} ${displayedPlans.length === 1 ? "plan" : "planes"}`;
 
         const stripGrid = document.getElementById("strip-days-grid");
         const stripHtml = [];
@@ -987,14 +991,14 @@
         }
         stripGrid.innerHTML = stripHtml.join("");
 
-        // 2. Render Upcoming Plans (filtered by selected day if chosen)
+        // 2. Render Upcoming Plans (or all plans of selected day)
         const upcomingContainer = document.getElementById("upcoming-plans-container");
-        if (filteredUpcomingPlans.length === 0) {
+        if (displayedPlans.length === 0) {
           if (selectedDayKey) {
             upcomingContainer.innerHTML = `
               <div class="rounded-[2rem] border border-dashed border-[#d8c9bf] bg-[#fffaf5] p-10 text-center">
-                <h3 class="font-serif text-2xl">Sin planes próximos este día</h3>
-                <p class="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#7a6a62]">Podés crear un plan para esta fecha o volver a ver todos los próximos.</p>
+                <h3 class="font-serif text-2xl">Sin planes para este día</h3>
+                <p class="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#7a6a62]">Podés crear un plan para esta fecha o tocar Agenda para ver lo que viene.</p>
                 <div class="mt-6 flex flex-wrap justify-center gap-3">
                   <button data-action="clear-day-filter" class="rounded-full border border-[#d8ccc2] bg-white px-5 py-2.5 text-sm font-bold text-[#5e4e47]" type="button">Ver todos los planes</button>
                   <button data-action="open-create-plan" class="rounded-full bg-[#332621] px-5 py-2.5 text-sm font-bold text-white" type="button">Crear plan</button>
@@ -1017,29 +1021,58 @@
             `;
           }
         } else {
-          const cardsHtml = filteredUpcomingPlans.map((plan, idx) => {
+          const cardsHtml = displayedPlans.map((plan, idx) => {
             const cat = CATEGORY_META[plan.category] || CATEGORY_META.other;
             const d = new Date(plan.date);
             const monthShort = monthShortFmt.format(d).replace(".", "");
             const dayNum = d.getUTCDate();
             const timeStr = timeFmt.format(d);
+            const isCompleted = plan.status === "completed";
+            const hasMemory = rememberedPlanIds.has(plan.id);
+            const dateBadgeClasses = isCompleted
+              ? "bg-[#dce8df] text-[#42634d]"
+              : "bg-[#f2ddd6] text-[#8e4637]";
+            const statusPillHtml = isCompleted
+              ? `<span class="inline-flex items-center gap-1 rounded-full bg-[#dce8df] px-3 py-1 text-[11px] font-bold text-[#42634d]">
+                   <svg aria-hidden="true" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                     <path d="m5 12 4 4L19 6"></path>
+                   </svg>
+                   Realizado
+                 </span>`
+              : plan.status === "postponed"
+                ? `<span class="rounded-full bg-[#eee5db] px-3 py-1 text-[11px] font-bold text-[#7e6a5d]">Reprogramado</span>`
+                : "";
+            const footerActionsHtml = isCompleted
+              ? `<button data-action="add-memory" data-plan-id="${escapeHtml(plan.id)}" class="min-h-11 rounded-full bg-[#f3f8f4] border border-[#d7e2da] px-4 py-2 text-xs font-bold text-[#42634d] transition active:scale-95 sm:hover:bg-[#dce8df]" type="button">
+                   ${hasMemory ? "Sumar recuerdo" : "Agregar recuerdo"}
+                 </button>`
+              : `<button data-action="cancel" data-plan-id="${escapeHtml(plan.id)}" class="grid h-11 w-11 place-items-center rounded-full text-[#9a665a] transition active:bg-[#f2ddd6] sm:hover:bg-[#f6eae6]" type="button" aria-label="Cancelar ${escapeHtml(plan.title)}" title="Cancelar plan">
+                   <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                     <circle cx="12" cy="12" r="9"></circle>
+                     <path d="m6 6 12 12"></path>
+                   </svg>
+                 </button>
+                 <button data-action="reschedule" data-plan-id="${escapeHtml(plan.id)}" class="min-h-11 rounded-full border border-[#d8ccc2] px-4 py-2 text-xs font-bold text-[#6f5c53] transition active:bg-white sm:hover:bg-white" type="button">
+                   Reprogramar
+                 </button>
+                 <button data-action="complete" data-plan-id="${escapeHtml(plan.id)}" class="grid h-11 w-11 place-items-center rounded-full bg-[#332621] text-white transition active:scale-95 sm:hover:bg-[#b96550]" type="button" aria-label="Marcar ${escapeHtml(plan.title)} como realizado" title="Marcar como realizado">
+                   <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                     <path d="m5 12 4 4L19 6"></path>
+                   </svg>
+                 </button>`;
             return `
               <article class="group rounded-[1.75rem] border border-[#e5dbd1] p-5 transition hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(67,45,37,0.08)] sm:p-6 ${
                 idx === 0 ? "bg-[#fffdf9]" : "bg-[#f1ebe5]"
               }">
                 <div class="flex gap-5">
-                  <div class="flex h-20 w-16 shrink-0 flex-col items-center justify-center rounded-2xl bg-[#f2ddd6] text-[#8e4637]">
+                  <div class="flex h-20 w-16 shrink-0 flex-col items-center justify-center rounded-2xl ${dateBadgeClasses}">
                     <span class="text-[10px] font-black uppercase tracking-widest">${escapeHtml(monthShort)}</span>
                     <span class="font-serif text-3xl leading-none">${dayNum}</span>
                   </div>
                   <div class="min-w-0 flex-1">
                     <div class="mb-3 flex flex-wrap items-center gap-2">
                       <span class="rounded-full px-3 py-1 text-[11px] font-bold ${cat.color}">${escapeHtml(cat.label)}</span>
-                      ${
-                        plan.status === "postponed"
-                          ? `<span class="rounded-full bg-[#eee5db] px-3 py-1 text-[11px] font-bold text-[#7e6a5d]">Reprogramado</span>`
-                          : ""
-                      }
+                      ${statusPillHtml}
                     </div>
                     <h3 class="font-serif text-2xl leading-tight">${escapeHtml(plan.title)}</h3>
                     ${
@@ -1076,20 +1109,7 @@
                     }
                   </div>
                   <div class="flex gap-2">
-                    <button data-action="cancel" data-plan-id="${escapeHtml(plan.id)}" class="grid h-11 w-11 place-items-center rounded-full text-[#9a665a] transition active:bg-[#f2ddd6] sm:hover:bg-[#f6eae6]" type="button" aria-label="Cancelar ${escapeHtml(plan.title)}" title="Cancelar plan">
-                      <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="9"></circle>
-                        <path d="m6 6 12 12"></path>
-                      </svg>
-                    </button>
-                    <button data-action="reschedule" data-plan-id="${escapeHtml(plan.id)}" class="min-h-11 rounded-full border border-[#d8ccc2] px-4 py-2 text-xs font-bold text-[#6f5c53] transition active:bg-white sm:hover:bg-white" type="button">
-                      Reprogramar
-                    </button>
-                    <button data-action="complete" data-plan-id="${escapeHtml(plan.id)}" class="grid h-11 w-11 place-items-center rounded-full bg-[#332621] text-white transition active:scale-95 sm:hover:bg-[#b96550]" type="button" aria-label="Marcar ${escapeHtml(plan.title)} como realizado" title="Marcar como realizado">
-                      <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="m5 12 4 4L19 6"></path>
-                      </svg>
-                    </button>
+                    ${footerActionsHtml}
                   </div>
                 </div>
               </article>
@@ -1099,7 +1119,6 @@
         }
 
         // 2b. Render "Ya realizados · Recuerdos recientes" snap strip inside Agenda (from updated Figma Make)
-        const rememberedPlanIds = new Set(state.memories.map((m) => m.planId).filter(Boolean));
         const recentWrap = document.getElementById("agenda-recent-completed-wrap");
         const recentCardsEl = document.getElementById("agenda-recent-completed-cards");
         const completedSorted = [...completedPlans].sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -1580,11 +1599,16 @@
         });
       });
 
-      // Navigation bindings
-      document.getElementById("brand-home-btn").addEventListener("click", () => setTab("agenda"));
-      document.getElementById("desktop-tab-agenda").addEventListener("click", () => setTab("agenda"));
+      // Navigation bindings (clicking Agenda or logo also clears any selected-day filter)
+      function goToAgendaHome() {
+        selectedDayKey = null;
+        setTab("agenda");
+        render();
+      }
+      document.getElementById("brand-home-btn").addEventListener("click", goToAgendaHome);
+      document.getElementById("desktop-tab-agenda").addEventListener("click", goToAgendaHome);
       document.getElementById("desktop-tab-memories").addEventListener("click", () => setTab("memories"));
-      document.getElementById("mobile-tab-agenda").addEventListener("click", () => setTab("agenda"));
+      document.getElementById("mobile-tab-agenda").addEventListener("click", goToAgendaHome);
       document.getElementById("mobile-tab-memories").addEventListener("click", () => setTab("memories"));
       document.getElementById("banner-view-memories-btn").addEventListener("click", () => setTab("memories"));
       document.getElementById("agenda-view-gallery-btn").addEventListener("click", () => setTab("memories"));
@@ -1596,10 +1620,6 @@
       });
       document.getElementById("strip-next-week-btn").addEventListener("click", () => {
         stripWeekOffset += 1;
-        render();
-      });
-      document.getElementById("strip-clear-filter-btn").addEventListener("click", () => {
-        selectedDayKey = null;
         render();
       });
       document.getElementById("strip-days-grid").addEventListener("click", (e) => {

@@ -169,6 +169,8 @@ dialog.nosotros-dialog[data-closing]::backdrop {
 }
 
 /* Figma Make v2 utility additions (Ya realizados / interactive week strip / snap scrollers) */
+.inline-flex { display: inline-flex; }
+.whitespace-nowrap { white-space: nowrap; }
 .-mx-1 { margin-inline: calc(var(--spacing) * -1); }
 .mb-1 { margin-bottom: var(--spacing); }
 .mt-0\.5 { margin-top: calc(var(--spacing) * 0.5); }
@@ -265,6 +267,7 @@ button[data-close-dialog].rounded-full {
   @media (hover: hover) {
     .sm\:hover\:bg-\[\#f5f0ea\]:hover { background-color: #f5f0ea; }
     .sm\:hover\:bg-\[\#f6eae6\]:hover { background-color: #f6eae6; }
+    .sm\:hover\:bg-\[\#dce8df\]:hover { background-color: #dce8df; }
   }
 }
 
