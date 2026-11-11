@@ -215,6 +215,59 @@ button[data-close-dialog].rounded-full {
   min-height: 2.5rem;
 }
 
+/* Complete missing utility classes referenced across templates */
+.h-3 { height: calc(var(--spacing) * 3); }
+.w-3 { width: calc(var(--spacing) * 3); }
+.h-6 { height: calc(var(--spacing) * 6); }
+.w-6 { width: calc(var(--spacing) * 6); }
+.w-14 { width: calc(var(--spacing) * 14); }
+.mb-1\.5 { margin-bottom: calc(var(--spacing) * 1.5); }
+.mt-7 { margin-top: calc(var(--spacing) * 7); }
+.px-2\.5 { padding-inline: calc(var(--spacing) * 2.5); }
+.px-3\.5 { padding-inline: calc(var(--spacing) * 3.5); }
+.py-0\.5 { padding-block: calc(var(--spacing) * 0.5); }
+.py-2\.5 { padding-block: calc(var(--spacing) * 2.5); }
+.py-3\.5 { padding-block: calc(var(--spacing) * 3.5); }
+.leading-5 { line-height: calc(var(--spacing) * 5); }
+.font-extrabold { font-weight: 800; }
+.font-normal { font-weight: 400; }
+.opacity-75 { opacity: 0.75; }
+.tracking-\[0\.12em\] { letter-spacing: 0.12em; }
+.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.space-y-2 > :not(:last-child) { margin-block-end: calc(var(--spacing) * 2); }
+.space-y-3 > :not(:last-child) { margin-block-end: calc(var(--spacing) * 3); }
+.space-y-4 > :not(:last-child) { margin-block-end: calc(var(--spacing) * 4); }
+.object-contain { object-fit: contain; }
+.max-h-\[75dvh\] { max-height: 75dvh; }
+.max-h-\[92dvh\] { max-height: 92dvh; }
+.bg-\[\#211815\] { background-color: #211815; }
+.bg-\[\#b96550\]\/15 { background-color: rgba(185, 101, 80, 0.15); }
+.bg-\[\#f5efe8\] { background-color: #f5efe8; }
+.bg-black { background-color: #000; }
+.bg-white\/15 { background-color: rgba(255, 255, 255, 0.15); }
+.border-\[\#efe6dc\] { border-color: #efe6dc; }
+.border-white\/10 { border-color: rgba(255, 255, 255, 0.1); }
+.text-white\/70 { color: rgba(255, 255, 255, 0.7); }
+.accent-\[\#b96550\] { accent-color: #b96550; }
+@media (hover: hover) {
+  .hover\:bg-\[\#ddd1c6\]:hover { background-color: #ddd1c6; }
+  .hover\:bg-white:hover { background-color: #fff; }
+  .hover\:bg-white\/25:hover { background-color: rgba(255, 255, 255, 0.25); }
+}
+@media (min-width: 40rem) {
+  .sm\:gap-6 { gap: calc(var(--spacing) * 6); }
+  .sm\:inline-flex { display: inline-flex; }
+  .sm\:max-w-lg { max-width: 32rem; }
+  .sm\:max-w-md { max-width: var(--container-md); }
+  .sm\:mt-9 { margin-top: calc(var(--spacing) * 9); }
+  .sm\:p-7 { padding: calc(var(--spacing) * 7); }
+  .sm\:text-right { text-align: right; }
+  @media (hover: hover) {
+    .sm\:hover\:bg-\[\#f5f0ea\]:hover { background-color: #f5f0ea; }
+    .sm\:hover\:bg-\[\#f6eae6\]:hover { background-color: #f6eae6; }
+  }
+}
+
 
 /* Auth, Onboarding & Couple Account Styles */
 .visually-hidden {
