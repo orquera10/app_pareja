@@ -487,38 +487,61 @@ input[type="radio"]:focus-visible + .choice-card-label {
   background: #f7e4df;
 }
 
-/* Ready-to-remember plans grid in Recuerdos */
+/* Ready-to-remember plans grid in Recuerdos (matches Figma Make "LISTOS PARA RECORDAR") */
 .ready-plans-strip {
   margin-top: 2rem;
   border-radius: 1.75rem;
-  background: #f1ebe5;
+  background: #eee4da;
   border: 1px solid #e4dad0;
   padding: 1.25rem;
+}
+
+@media (min-width: 40rem) {
+  .ready-plans-strip {
+    border-radius: 2rem;
+    padding: 1.75rem;
+  }
 }
 
 .ready-plans-scroll {
   display: flex;
   gap: 0.75rem;
   overflow-x: auto;
-  padding-bottom: 0.35rem;
+  padding-bottom: 0.5rem;
   scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: #b7aaa0 transparent;
 }
 
 .ready-plan-card {
-  flex: 0 0 225px;
+  flex: 0 0 17.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
   scroll-snap-align: start;
   text-align: left;
-  border-radius: 1.25rem;
-  border: 1px solid #dfd3c8;
+  border-radius: 1.45rem;
+  border: 1px solid #e5dbd1;
   background: #fffdf9;
-  padding: 0.9rem 1rem;
+  padding: 0.85rem;
+  box-shadow: 0 6px 20px rgba(67, 45, 37, 0.04);
   transition: transform 0.16s, border-color 0.16s, box-shadow 0.16s;
+}
+
+@media (min-width: 40rem) {
+  .ready-plan-card {
+    flex: 0 0 19rem;
+  }
 }
 
 .ready-plan-card:hover {
   transform: translateY(-2px);
   border-color: #c89d8e;
   box-shadow: 0 10px 24px rgba(51, 38, 33, 0.08);
+}
+
+.ready-plan-card:active {
+  transform: scale(0.98);
 }
 
 .ready-plan-card:focus-visible {

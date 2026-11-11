@@ -186,29 +186,17 @@
               Recuerdos <span class="italic text-[#b96550]">juntos.</span>
             </h1>
           </div>
-          <div class="flex flex-col items-start gap-3 sm:items-end">
-            <p id="memories-count-subtitle" class="max-w-sm text-sm leading-6 text-[#766760] sm:text-right">
-              0 momentos guardados para volver a ellos cuando quieran.
-            </p>
-            <button id="open-free-memory-btn" type="button" class="inline-flex items-center gap-2 rounded-full bg-[#332621] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#b96550]">
-              <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 5v14M5 12h14"></path>
-              </svg>
-              Subir recuerdo
-            </button>
-          </div>
+          <p id="memories-count-subtitle" class="max-w-sm text-sm leading-6 text-[#766760] sm:text-right">
+            0 momentos guardados para volver a ellos cuando quieran.
+          </p>
         </div>
 
-        <!-- Quick-pick strip: touch any scheduled or completed plan to upload photos -->
+        <!-- Quick-pick strip: touch any plan card to upload a memory (matches Figma Make "LISTOS PARA RECORDAR") -->
         <div id="ready-plans-strip" class="ready-plans-strip hidden">
-          <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h2 class="font-serif text-xl text-[#332621]">Planes listos para subir fotos</h2>
-              <p class="text-xs text-[#796960]">Tocá una cita programada o realizada para guardar su recuerdo al instante.</p>
-            </div>
-            <select id="completed-plan-select" aria-label="Elegir otro plan" class="rounded-full border border-[#dfd3c8] bg-[#fffdf9] px-4 py-2 text-xs font-bold text-[#332621] outline-none">
-              <option value="" disabled selected>Ver todos los planes...</option>
-            </select>
+          <div class="mb-4">
+            <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-[#b05f4b]">Listos para recordar</p>
+            <h2 class="mt-1 font-serif text-2xl text-[#30231f] sm:text-3xl">¿Falta algún momento?</h2>
+            <p class="mt-1 text-sm text-[#766760]">Tocá un plan realizado para guardarlo en el álbum.</p>
           </div>
           <div id="ready-plans-cards" class="ready-plans-scroll"></div>
         </div>
@@ -1141,34 +1129,49 @@
           recentWrap.classList.add("hidden");
         }
 
-        // 3. Render Ready Plans Strip inside Recuerdos (scheduled & completed plans ready to tap)
+        // 3. Render Ready Plans Strip inside Recuerdos (Figma Make "LISTOS PARA RECORDAR" cards)
         const readyStrip = document.getElementById("ready-plans-strip");
         const readyCards = document.getElementById("ready-plans-cards");
-        const selectEl = document.getElementById("completed-plan-select");
         const orderedReadyPlans = [
-          ...completedPlans.filter((p) => !rememberedPlanIds.has(p.id)),
+          ...completedPlans.filter((p) => !rememberedPlanIds.has(p.id)).sort((a, b) => new Date(b.date) - new Date(a.date)),
+          ...completedPlans.filter((p) => rememberedPlanIds.has(p.id)).sort((a, b) => new Date(a.date) - new Date(b.date)),
           ...upcomingPlans,
-          ...completedPlans.filter((p) => rememberedPlanIds.has(p.id)),
         ];
-        if (orderedReadyPlans.length > 0) {
+        if (orderedReadyPlans.length > 0 && readyStrip && readyCards) {
           readyStrip.classList.remove("hidden");
-          selectEl.innerHTML = `<option value="" disabled selected>Ver todos los planes (${orderedReadyPlans.length})...</option>` +
-            orderedReadyPlans.map((p) => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.title)} (${p.status === "completed" ? "Realizado" : "Programado"})</option>`).join("");
-          readyCards.innerHTML = orderedReadyPlans.slice(0, 10).map((p) => {
+          readyCards.innerHTML = orderedReadyPlans.map((p) => {
             const d = new Date(p.date);
-            const dateLabel = dateFmtLong.format(d);
-            const badge = p.status === "completed"
-              ? (rememberedPlanIds.has(p.id) ? `<span class="rounded-full bg-[#ebe3da] px-2.5 py-0.5 text-[10px] font-bold text-[#6e5d54]">Ya tiene recuerdo</span>` : `<span class="rounded-full bg-[#dbe9df] px-2.5 py-0.5 text-[10px] font-bold text-[#315c40]">Listo · Realizado</span>`)
-              : `<span class="rounded-full bg-[#f2ddd6] px-2.5 py-0.5 text-[10px] font-bold text-[#8e4637]">Cita programada</span>`;
+            const monthShort = monthShortFmt.format(d).replace(".", "").toUpperCase();
+            const dayNum = d.getUTCDate();
+            const isCompleted = p.status === "completed";
+            const dateBadgeCls = isCompleted ? "bg-[#dce8df] text-[#42634d]" : "bg-[#f2ddd6] text-[#8e4637]";
+            const statusLabel = isCompleted
+              ? `<span class="flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#42634d]">
+                   <svg aria-hidden="true" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"></path></svg>
+                   Realizado
+                 </span>`
+              : `<span class="text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#b05f4b]">Programado</span>`;
+            const subText = rememberedPlanIds.has(p.id) ? "Agregar otro recuerdo..." : "Agregar recuerdo...";
             return `
               <button type="button" data-quick-plan-id="${escapeHtml(p.id)}" class="ready-plan-card">
-                <div class="mb-2 flex items-center justify-between gap-2">${badge}</div>
-                <p class="truncate font-serif text-lg font-medium text-[#332621]">${escapeHtml(p.title)}</p>
-                <p class="mt-1 text-[11px] font-semibold text-[#857268]">${escapeHtml(dateLabel)} · Tocá para subir</p>
+                <span class="flex h-16 w-14 shrink-0 flex-col items-center justify-center rounded-2xl ${dateBadgeCls}">
+                  <span class="text-[10px] font-black uppercase tracking-wider">${escapeHtml(monthShort)}</span>
+                  <span class="font-serif text-2xl leading-none">${dayNum}</span>
+                </span>
+                <span class="min-w-0 flex-1">
+                  ${statusLabel}
+                  <span class="mt-0.5 block truncate font-serif text-xl leading-tight text-[#30231f]">${escapeHtml(p.title)}</span>
+                  <span class="mt-0.5 block truncate text-xs text-[#7a6a62]">${subText}</span>
+                </span>
+                <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#332621] text-white">
+                  <svg aria-hidden="true" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 5v14M5 12h14"></path>
+                  </svg>
+                </span>
               </button>
             `;
           }).join("");
-        } else {
+        } else if (readyStrip) {
           readyStrip.classList.add("hidden");
         }
 
@@ -1184,7 +1187,7 @@
                 <path d="m21 15-5-5L5 20"></path>
               </svg>
               <h2 class="font-serif text-3xl">El álbum todavía está esperando</h2>
-              <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-[#7a6a62]">Tocá cualquiera de sus citas de arriba o el botón “Subir recuerdo” para guardar fotos y frases.</p>
+              <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-[#7a6a62]">Tocá cualquiera de los planes de arriba para guardar sus fotos y frases.</p>
             </div>
           `;
         } else {
@@ -1616,7 +1619,6 @@
       document.getElementById("top-new-plan-btn").addEventListener("click", openCreatePlanDialog);
       document.getElementById("mobile-new-plan-btn").addEventListener("click", openCreatePlanDialog);
       document.getElementById("inline-add-plan-btn").addEventListener("click", openCreatePlanDialog);
-      document.getElementById("open-free-memory-btn").addEventListener("click", () => openCreateMemoryDialog(null));
       document.getElementById("memory-plan-select").addEventListener("change", (e) => syncMemoryDialogFields(e.target.value));
 
       // Confirmation modal proceed button
@@ -1789,16 +1791,6 @@
           } finally {
             btn.disabled = false;
           }
-        }
-      });
-
-      // Completed plan select in Recuerdos view
-      document.getElementById("completed-plan-select").addEventListener("change", (e) => {
-        const planId = e.target.value;
-        const plan = state.plans.find((p) => p.id === planId);
-        e.target.value = "";
-        if (plan) {
-          openCreateMemoryDialog(plan);
         }
       });
 
